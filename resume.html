@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resume - Shawn Rao</title>
+<meta name="description" content="Resume of Shawn Rao, Data Science undergraduate at the University of Michigan College of Engineering.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Resume page. Same tokens as index.html so the accessibility settings
+   carry over. Print rules at the bottom: Ctrl+P gives a clean one-pager. */
+:root {
+  color-scheme: light;
+  --paper:#f7f8fa; --surface:#fff; --ink:#11151b; --muted:#59616f;
+  --rule:#dfe3ea; --accent:#0a6fb8; --accent2:#9e630b; --focus:#0a6fb8;  /* 4.66:1. #a8690c was 4.21, under AA */
+  --display:"Newsreader",Georgia,serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --scale:1; --gutter:clamp(16px,4vw,3rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme:dark;
+    --paper:#0b0e13; --surface:#141922; --ink:#e9edf4; --muted:#8e97a8;
+    --rule:#212936; --accent:#4cc3f0; --accent2:#f0a93c; --focus:#4cc3f0;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --paper:#0b0e13; --surface:#141922; --ink:#e9edf4; --muted:#8e97a8;
+  --rule:#212936; --accent:#4cc3f0; --accent2:#f0a93c; --focus:#4cc3f0;
+}
+:root[data-cvd="rg"] { --accent:#0072b2; --accent2:#966700; --focus:#0072b2; }  /* raw okabe-ito orange is 2.12:1 on white */
+:root[data-cvd="rg"]:not([data-theme="light"]) { --accent:#56b4e9; --accent2:#e69f00; --focus:#56b4e9; }
+:root[data-cvd="by"] { --accent:#007d7d; --accent2:#c2185b; --focus:#007d7d; }  /* 4.67:1. #008080 was 4.49 */
+:root[data-cvd="by"]:not([data-theme="light"]) { --accent:#4ecdc4; --accent2:#ff6fb5; --focus:#4ecdc4; }
+:root[data-contrast="high"] { --paper:#fff; --surface:#fff; --ink:#000; --muted:#2b3038; --rule:#4a515c; }
+:root[data-contrast="high"]:not([data-theme="light"]) { --paper:#000; --surface:#0a0d12; --ink:#fff; --muted:#d4d9e2; --rule:#8d96a4; }
+:root[data-underline="on"] a { text-decoration: underline !important; }
+
+*,*::before,*::after { box-sizing:border-box; }
+html { font-size: calc(100% * var(--scale)); }
+body {
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--body); font-size:1rem; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap { max-width:50rem; margin:0 auto; padding:clamp(1.5rem,5vw,3rem) var(--gutter) 4rem; }
+a { color:var(--accent); text-underline-offset:2px; }
+:is(a,button):focus-visible { outline:3px solid var(--focus); outline-offset:2px; border-radius:3px; }
+p,li,dd,h1,h2,h3 { overflow-wrap:break-word; }
+
+.skip { position:absolute; left:.6rem; top:-4rem; z-index:9;
+  background:var(--surface); color:var(--ink); border:1px solid var(--accent);
+  border-radius:6px; padding:.6rem 1rem; text-decoration:none; transition:top .18s; }
+.skip:focus { top:.6rem; }
+
+.back {
+  display:inline-block; font-family:var(--mono); font-size:.76rem;
+  letter-spacing:.07em; text-transform:uppercase;
+  padding:.45rem 0; margin-bottom:1.4rem; text-decoration:none;
+}
+.back::before { content:"\2190"; margin-right:.45rem; }
+.back:hover { text-decoration:underline; }
+
+h1 { font-family:var(--display); font-size:clamp(2rem,6vw,2.7rem); font-weight:600;
+  letter-spacing:-.02em; line-height:1.05; margin:0 0 .5rem; }
+.sub { font-family:var(--display); font-style:italic; color:var(--muted);
+  font-size:1.02rem; margin:0 0 .9rem; }
+.meta { display:flex; flex-wrap:wrap; gap:.2rem 1.1rem; margin:0 0 .4rem;
+  padding:0; list-style:none; font-family:var(--mono); font-size:.79rem; color:var(--muted); }
+.meta a { color:var(--ink); display:inline-block; padding:.3rem 0; }
+
+.tip { font-size:.82rem; color:var(--muted); margin:.2rem 0 0; }
+.tip kbd {
+  font-family:var(--mono); font-size:.92em;
+  border:1px solid var(--rule); border-bottom-width:2px;
+  border-radius:4px; padding:.05em .35em; background:var(--surface);
+}
+
+h2 {
+  font-family:var(--body); font-size:.78rem; font-weight:600;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--muted);
+  margin:2rem 0 .1rem; padding-bottom:.35rem; border-bottom:1px solid var(--rule);
+}
+h3 { font-family:var(--display); font-size:1.12rem; font-weight:600; margin:1rem 0 .1rem; }
+.row { display:flex; flex-wrap:wrap; gap:0 1rem; justify-content:space-between; align-items:baseline; }
+.row .when { font-family:var(--mono); font-size:.78rem; color:var(--muted);
+  font-variant-numeric:tabular-nums; white-space:nowrap; }
+.where { font-style:italic; color:var(--muted); font-size:.93rem; margin:0 0 .5rem; }
+
+ul.b { margin:.45rem 0 0; padding:0; list-style:none; display:grid; gap:.42rem; }
+ul.b li { position:relative; padding-left:clamp(12px,1rem,18px); }
+ul.b li::before { content:""; position:absolute; left:0; top:.62em;
+  width:.4rem; height:1px; background:var(--accent); }
+
+dl.kv { margin:.5rem 0 0; display:grid; gap:.42rem; }
+dl.kv > div { display:grid; gap:.05rem .9rem; }
+@media (min-width:600px) { dl.kv > div { grid-template-columns:9.5rem 1fr; } }
+dl.kv dt { font-family:var(--mono); font-size:.72rem; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--accent2); }
+dl.kv dd { margin:0; font-size:.93rem; }
+
+.stackline { font-family:var(--mono); font-size:.76rem; color:var(--muted); margin:.1rem 0 0; }
+
+/* ---- print: strip chrome, force light, fit one page ---- */
+@media print {
+  @page { margin:14mm 13mm; }
+  :root {
+    --paper:#fff; --surface:#fff; --ink:#000; --muted:#333;
+    --rule:#bbb; --accent:#000; --accent2:#333;
+  }
+  html { font-size:9.6pt; }
+  body { background:#fff; color:#000; }
+  .wrap { max-width:none; padding:0; }
+  .skip, .back, .tip { display:none !important; }
+  a { color:#000; text-decoration:none; }
+  h1 { font-size:20pt; margin-bottom:.2rem; }
+  h2 { margin:.7rem 0 .1rem; font-size:8pt; }
+  h3 { font-size:10.5pt; margin:.45rem 0 .05rem; }
+  ul.b { gap:.18rem; }
+  section, article, li { break-inside:avoid; page-break-inside:avoid; }
+  h2, h3 { break-after:avoid; page-break-after:avoid; }
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#top">Skip to content</a>
+
+<main class="wrap">
+  <a class="back" href="index.html">Back to site</a>
+
+  <header id="top">
+    <h1>Shawn Rao</h1>
+    <p class="sub">Software Engineering &middot; Web Development &middot; Data Science</p>
+    <ul class="meta">
+      <li><a href="mailto:shawnrao@umich.edu">shawnrao@umich.edu</a></li>
+      <li><a href="tel:+17342728732">734-272-8732</a></li>
+      <li><a href="index.html">shawnrao21.github.io</a></li>
+      <li>Ypsilanti, MI</li>
+    </ul>
+    <p class="tip">Press <kbd>Ctrl</kbd>+<kbd>P</kbd> (<kbd>Cmd</kbd>+<kbd>P</kbd> on Mac) to print or save this as a PDF, or <a href="Shawn_Rao_Resume.pdf">download the PDF</a>.</p>
+  </header>
+
+  <section>
+    <h2>Summary</h2>
+    <p>Data Science undergraduate in the University of Michigan College of Engineering, graduating December 2027. Works in C++ on performance-sensitive systems, in Python and R on data and statistics, and in JavaScript on responsive, accessible web interfaces. Comfortable in Git-based collaborative development workflows. Seeking a Summer 2027 internship in software engineering or data.</p>
+  </section>
+
+  <section>
+    <h2>Education</h2>
+    <article>
+      <div class="row">
+        <h3>University of Michigan, College of Engineering</h3>
+        <span class="when">Ann Arbor, MI</span>
+      </div>
+      <div class="row">
+        <p class="where">Bachelor of Science in Engineering (B.S.E.), Data Science</p>
+        <span class="when">Expected 12/2027</span>
+      </div>
+      <dl class="kv">
+        <div>
+          <dt>CS &amp; software</dt>
+          <dd>SI 339 (Web Design, Development &amp; Accessibility), SI 206 (Data-Oriented Programming), EECS 281 (Data Structures &amp; Algorithms), EECS 280 (Programming &amp; Data Structures), EECS 203 (Discrete Math), EECS 376 (Foundations of Computer Science), TCHNCLCM 300 (Technical Communication for EE &amp; CE)</dd>
+        </div>
+        <div>
+          <dt>Data &amp; quantitative</dt>
+          <dd>ROB 101 (Computational Linear Algebra), MATH 215 (Vector Calculus), STATS 250 (Statistics &amp; Data Analysis)</dd>
+        </div>
+        <div>
+          <dt>In progress</dt>
+          <dd>DATASCI 306 (Statistical Computing in R), STATS 412 (Probability &amp; Statistics), EECS 201 (Unix, Shell, Git)</dd>
+        </div>
+      </dl>
+    </article>
+    <article>
+      <div class="row">
+        <h3>Purdue University</h3>
+        <span class="when">2025</span>
+      </div>
+      <p class="where">Applied Generative AI Specialization (online, 16 weeks)</p>
+    </article>
+  </section>
+
+  <section>
+    <h2>Technical Skills</h2>
+    <dl class="kv">
+      <div><dt>Languages</dt><dd>C++, Python, R, SQL, JavaScript (ES6+), HTML5, CSS3</dd></div>
+      <div><dt>Algorithms &amp; data structures</dt><dd>Heaps and priority queues, union-find with path compression, graph algorithms (Prim, Dijkstra, MST), dynamic programming, branch and bound, C++ STL</dd></div>
+      <div><dt>Statistics</dt><dd>Probability distributions, joint and conditional distributions, transformations of random variables, Central Limit Theorem, point estimation, OLS regression and confounding, t-tests</dd></div>
+      <div><dt>Data tools</dt><dd>R, tidyverse, RStudio, Quarto, Pandas, NumPy, JMP, SQL (window functions, recursive CTEs)</dd></div>
+      <div><dt>Testing &amp; verification</dt><dd>Randomized differential testing, mutation testing, Valgrind memory checking, strict-flag builds</dd></div>
+      <div><dt>Front end</dt><dd>DOM manipulation, CSS Grid, Flexbox, Media Queries, responsive design, WCAG 2.2 accessibility</dd></div>
+      <div><dt>Frameworks &amp; APIs</dt><dd>React, Node.js (self-directed study), LangChain, OpenAI API</dd></div>
+      <div><dt>Version control</dt><dd>Git (interactive rebase, hooks, reflog recovery, conflict resolution), GitHub, GitLab, collaborative development workflows</dd></div>
+      <div><dt>Systems &amp; cloud</dt><dd>Linux, Unix, Bash, Zsh, shell scripting, process control (fork/exec/wait), Docker, Amazon Web Services (AWS) EC2 and S3</dd></div>
+      <div><dt>Text processing</dt><dd>grep, sed, POSIX regular expressions</dd></div>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Projects</h2>
+
+    <article>
+      <h3>Order-Matching Engine and Market Simulator</h3>
+      <p class="stackline">C++, STL</p>
+      <ul class="b">
+        <li>Built a discrete-event engine that reads a stream of timestamped buy and sell orders and matches them against a price-time priority book, using paired binary heaps so each insert and match runs in O(log n).</li>
+        <li>Produced running median price, per-trader transfer totals, and arbitrage reports in a single pass over the order stream, with no second read of the input.</li>
+        <li>Analyzed the performance bottleneck and cut runtime on the largest test inputs by replacing linear scans with a custom priority queue, choosing the data structure for scalability rather than for the smallest change.</li>
+      </ul>
+    </article>
+
+    <article>
+      <h3>Conversational Search Interface</h3>
+      <p class="stackline">JavaScript, HTML5, CSS3, Python, LangChain, OpenAI API</p>
+      <ul class="b">
+        <li>Built a responsive web interface in JavaScript, HTML5 and CSS3, using CSS Grid and Flexbox for layout and media queries to hold the design together from mobile widths to desktop.</li>
+        <li>Rendered streamed responses through direct DOM manipulation rather than re-rendering the page, and handled loading, empty and error states so the interface stayed usable when the backend was slow or returned nothing.</li>
+        <li>Built the retrieval layer in Python over an embedded document index returning cited answers, and tuned chunk size and retrieval depth against a hand-labeled test set.</li>
+      </ul>
+    </article>
+
+    <article>
+      <h3>Personal site</h3>
+      <p class="stackline">HTML5, CSS Grid, Flexbox, Canvas, WCAG 2.2, no dependencies</p>
+      <ul class="b">
+        <li>Hand-written single-file site with no framework or build step, including a canvas animation paused by an IntersectionObserver when offscreen.</li>
+        <li>Built a user-facing accessibility panel: theme, reduced motion, colorblind-safe Okabe-Ito palettes, high contrast, text scaling to 150% and link underlining, persisted in localStorage.</li>
+        <li>Tested from 320px to desktop at every text size, fixing viewport overflow, sub-16px inputs that trigger iOS zoom, and tap targets below the 24px WCAG minimum.</li>
+      </ul>
+    </article>
+  </section>
+
+  <section>
+    <h2>Experience</h2>
+    <article>
+      <div class="row">
+        <h3>University of Michigan, College of Engineering (CAEN)</h3>
+        <span class="when">Ann Arbor, MI</span>
+      </div>
+      <div class="row">
+        <p class="where">Computer Hardware Technician, Student Staff</p>
+        <span class="when">04/2023 &ndash; 04/2026</span>
+      </div>
+      <ul class="b">
+        <li>Supported 200+ Linux, Windows and macOS workstations and servers in shared engineering labs, holding 99%+ uptime for 500+ students and faculty.</li>
+        <li>Analyzed complex hardware, software and network problems to root cause under walk-up time pressure, then presented the fix as written documentation the rest of the team could repeat.</li>
+        <li>Reduced hardware downtime 25% by standardizing imaging and diagnostics and tracking recurring failure modes across the fleet.</li>
+        <li>Supported a CrowdStrike endpoint security rollout to full fleet coverage, and worked with faculty to integrate 3 new lab technologies that cut shared-workflow setup time 40%.</li>
+      </ul>
+    </article>
+
+    <article>
+      <div class="row">
+        <p class="who">NYX Inc.</p>
+        <span class="when">Livonia, MI</span>
+      </div>
+      <div class="row">
+        <p class="where">Information Technology Summer Intern</p>
+        <span class="when">04/2021 &ndash; 07/2021</span>
+      </div>
+      <ul class="b">
+        <li>Configured and deployed employee workstations to company servers.</li>
+      </ul>
+    </article>
+  </section>
+</main>
+
+<script>
+// Carry the accessibility settings over from the main page. Same origin,
+// same localStorage key, so a visitor only sets them once.
+(function () {
+  "use strict";
+  try {
+    var p = JSON.parse(localStorage.getItem("sr-a11y") || "{}");
+    var r = document.documentElement;
+    if (p.theme && p.theme !== "system") r.setAttribute("data-theme", p.theme);
+    if (p.cvd && p.cvd !== "off") r.setAttribute("data-cvd", p.cvd);
+    if (p.contrast === "high") r.setAttribute("data-contrast", "high");
+    if (p.underline === "on") r.setAttribute("data-underline", "on");
+    if (p.scale) r.style.setProperty("--scale", p.scale);
+  } catch (e) { /* storage off. defaults are fine */ }
+})();
+</script>
+</body>
+</html>

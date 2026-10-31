@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Long-Distance Co-op · Shawn Rao</title>
+<meta name="description" content="Find a Steam game worth your time. Filter 3,000 games by players, genre and price, or name a game you liked and get similar ones.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Long-Distance Co-op. Same tokens as the rest of the site so the accessibility
+   settings carry over. All filtering and scoring happens in the browser. */
+:root {
+  color-scheme: light;
+  --paper:#f7f8fa; --surface:#fff; --ink:#11151b; --muted:#59616f;
+  --rule:#dfe3ea; --accent:#0a6fb8; --accent2:#9e630b; --good:#0a7f5f; --bad:#b5324a;
+  --focus:#0a6fb8;
+  --display:"Newsreader",Georgia,serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --scale:1; --gutter:clamp(16px,4vw,3rem); --ease:cubic-bezier(.22,.61,.36,1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme:dark;
+    --paper:#0b0e13; --surface:#141922; --ink:#e9edf4; --muted:#8e97a8;
+    --rule:#212936; --accent:#4cc3f0; --accent2:#f0a93c; --good:#3ddc97; --bad:#ff6b81;
+    --focus:#4cc3f0;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --paper:#0b0e13; --surface:#141922; --ink:#e9edf4; --muted:#8e97a8;
+  --rule:#212936; --accent:#4cc3f0; --accent2:#f0a93c; --good:#3ddc97; --bad:#ff6b81;
+  --focus:#4cc3f0;
+}
+:root[data-cvd="rg"] { --accent:#0072b2; --accent2:#966700; --good:#0072b2; --bad:#8a4500; --focus:#0072b2; }
+:root[data-cvd="rg"]:not([data-theme="light"]) { --accent:#56b4e9; --accent2:#e69f00; --good:#56b4e9; --bad:#e69f00; --focus:#56b4e9; }
+:root[data-cvd="by"] { --accent:#007d7d; --accent2:#c2185b; --good:#007d7d; --bad:#c2185b; --focus:#007d7d; }
+:root[data-cvd="by"]:not([data-theme="light"]) { --accent:#4ecdc4; --accent2:#ff6fb5; --good:#4ecdc4; --bad:#ff6fb5; --focus:#4ecdc4; }
+:root[data-contrast="high"] { --paper:#fff; --surface:#fff; --ink:#000; --muted:#2b3038; --rule:#4a515c; }
+:root[data-contrast="high"]:not([data-theme="light"]) { --paper:#000; --surface:#0a0d12; --ink:#fff; --muted:#d4d9e2; --rule:#8d96a4; }
+:root[data-underline="on"] a { text-decoration: underline !important; }
+
+*,*::before,*::after { box-sizing:border-box; }
+html { font-size: calc(100% * var(--scale)); }
+body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--body);
+  font-size:1rem; line-height:1.55; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+.wrap { max-width:62rem; margin:0 auto; padding:clamp(1.5rem,5vw,3rem) var(--gutter) 4rem; }
+a { color:var(--accent); text-underline-offset:2px; }
+:is(a,button,input,select):focus-visible { outline:3px solid var(--focus); outline-offset:2px; border-radius:4px; }
+p,li,dd,h1,h2,h3 { overflow-wrap:break-word; }
+code { overflow-wrap:anywhere; word-break:break-word; font-size:.92em; }
+
+.skip { position:absolute; left:.6rem; top:-4rem; z-index:9; background:var(--surface);
+  color:var(--ink); border:1px solid var(--accent); border-radius:6px; padding:.6rem 1rem;
+  text-decoration:none; transition:top .18s; }
+.skip:focus { top:.6rem; }
+.vh { position:absolute!important; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+
+.back { display:inline-block; font-family:var(--mono); font-size:.76rem; letter-spacing:.07em;
+  text-transform:uppercase; padding:.45rem 0; margin-bottom:1.3rem; text-decoration:none; }
+.back::before { content:"\2190"; margin-right:.45rem; }
+
+h1 { font-family:var(--display); font-size:clamp(2.1rem,6vw,3rem); font-weight:600;
+  letter-spacing:-.022em; line-height:1.05; margin:0 0 .5rem; }
+.lede { font-family:var(--display); font-style:italic; color:var(--muted);
+  font-size:clamp(1.02rem,2.4vw,1.2rem); margin:0 0 1.4rem; max-width:52ch; }
+
+h2 { font-family:var(--body); font-size:.78rem; font-weight:600; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--muted); margin:2.4rem 0 .1rem;
+  padding-bottom:.35rem; border-bottom:1px solid var(--rule); }
+
+/* ---- summary tiles ---- */
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr));
+  gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:8px;
+  overflow:hidden; margin:1.1rem 0 0; }
+.tile { background:var(--surface); padding:.9rem 1rem; }
+.tile b { display:block; font-family:var(--mono); font-size:1.42rem; font-weight:500;
+  font-variant-numeric:tabular-nums; color:var(--accent); line-height:1.1; letter-spacing:-.02em; }
+.tile span { display:block; font-size:.74rem; color:var(--muted); margin-top:.2rem; line-height:1.35; }
+
+/* ---- controls ---- */
+.controls { display:grid; gap:1rem; margin:1.2rem 0 0;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr)); }
+.ctl label { display:block; font-family:var(--mono); font-size:.7rem; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--accent2); margin-bottom:.35rem; }
+select, input[type=search], input[type=range] {
+  width:100%; font-family:inherit; font-size:max(16px,.9rem); color:var(--ink);
+  background:var(--surface); border:1px solid var(--rule); border-radius:7px; padding:.55rem .7rem; }
+/* 2.5.8 wants a 24px target. the default track is 18px tall, so the thumb is
+   fiddly to grab on a phone. size the thumb and give the control real height. */
+input[type=range] {
+  padding:0; accent-color:var(--accent);
+  height:1.75rem; min-height:24px; background:transparent; border:0;
+  -webkit-appearance:none; appearance:none; cursor:pointer;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  height:.375rem; border-radius:999px; background:var(--rule);
+}
+input[type=range]::-moz-range-track {
+  height:.375rem; border-radius:999px; background:var(--rule);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none;
+  width:1.5rem; height:1.5rem; border-radius:50%;
+  background:var(--accent); border:2px solid var(--paper);
+  margin-top:-.5625rem;
+}
+input[type=range]::-moz-range-thumb {
+  width:1.5rem; height:1.5rem; border-radius:50%;
+  background:var(--accent); border:2px solid var(--paper);
+}
+input[type=range]:focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
+.rangeval { font-family:var(--mono); font-size:.8rem; color:var(--muted); margin-top:.3rem; display:block; }
+
+/* 24px is the 2.5.8 minimum and it is an absolute number, and 16px on the
+   input stops iOS zooming the page when it takes focus. both are rules I had
+   already fixed elsewhere on this site and walked straight back into here. */
+.opt { display: inline-flex; align-items: center; gap: .5rem;
+  font-size: .85rem; min-height: 32px; cursor: pointer; padding: .1rem .2rem; }
+.opt input { width: 24px; height: 24px; flex: none; font-size: 16px;
+  accent-color: var(--accent); cursor: pointer; }
+.opt:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+
+.chips { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.35rem; }
+.chip { font-size:.8rem; border:1px solid var(--rule); background:var(--surface);
+  border-radius:100px; padding:.3rem .7rem; cursor:pointer; color:var(--ink);
+  transition:border-color .2s var(--ease), color .2s var(--ease); }
+.chip[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); font-weight:600; }
+.chip:hover { border-color:var(--accent); }
+
+/* ---- results ---- */
+.meta { font-family:var(--mono); font-size:.78rem; color:var(--muted); margin:1.1rem 0 .6rem; }
+.list { list-style:none; margin:0; padding:0; display:grid; gap:.55rem; }
+.row { background:var(--surface); border:1px solid var(--rule); border-radius:9px;
+  padding:.85rem 1rem; display:grid; gap:.3rem .9rem;
+  grid-template-columns:1fr auto; align-items:start; }
+.row h3 { font-family:var(--display); font-size:1.12rem; font-weight:600; margin:0;
+  grid-column:1; grid-row:1; }
+.row h3 a { text-decoration:none; }
+.row h3 a:hover { text-decoration:underline; }
+.row .sub { font-family:var(--mono); font-size:.73rem; color:var(--muted);
+  grid-column:1; grid-row:2; margin:0; }
+.row .right { text-align:right; font-family:var(--mono); font-size:.8rem;
+  font-variant-numeric:tabular-nums; grid-column:2; grid-row:1 / span 2; margin:0; }
+.row .pct { display:block; font-size:1rem; color:var(--good); font-weight:500; }
+.row .price { display:block; color:var(--muted); margin-top:.15rem; }
+.row .tagline { grid-column:1 / -1; grid-row:3; display:flex; flex-wrap:wrap;
+  gap:.28rem; margin:.3rem 0 0; }
+.row .tagline span { font-family:var(--mono); font-size:.68rem; color:var(--muted);
+  border:1px solid var(--rule); border-radius:100px; padding:.1rem .5rem; }
+.why { grid-column:1 / -1; grid-row:4; font-size:.8rem; color:var(--accent2); margin:.35rem 0 0; }
+
+.empty { border:1px dashed var(--rule); border-radius:9px; padding:1.4rem; color:var(--muted); font-size:.92rem; }
+.status { font-family:var(--mono); font-size:.8rem; color:var(--muted); }
+
+/* ---- bar chart ---- */
+.bars { display:grid; gap:.4rem; margin-top:1rem; }
+.bar { display:grid; grid-template-columns:minmax(5.5rem,8rem) 1fr auto; gap:.7rem; align-items:center;
+  font-size:.84rem; }
+.bar .track { background:var(--rule); border-radius:100px; height:.65rem; overflow:hidden; }
+.bar .fill { display:block; height:100%; background:var(--accent); border-radius:100px; }
+.bar .num { font-family:var(--mono); font-size:.76rem; color:var(--muted);
+  font-variant-numeric:tabular-nums; }
+
+.note { font-size:.85rem; color:var(--muted); max-width:60ch; }
+footer { border-top:1px solid var(--rule); margin-top:3rem; padding:1.4rem 0 3rem;
+  font-family:var(--mono); font-size:.76rem; color:var(--muted); }
+footer p { margin:0 0 .4rem; max-width:none; }
+
+/* ---- SQL analysis ---- */
+.q { border:1px solid var(--rule); border-radius:9px; margin-bottom:1rem;
+  background:var(--surface); overflow:hidden; }
+.q > h3 { font-family:var(--display); font-size:1.1rem; font-weight:600;
+  margin:0; padding:.9rem 1rem .2rem; }
+.q .note { padding:0 1rem .7rem; margin:0; font-size:.84rem; }
+.q .sqlbtn { font-family:var(--mono); font-size:.68rem; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--muted); background:transparent;
+  border:1px solid var(--rule); border-radius:100px; padding:.25rem .65rem;
+  cursor:pointer; margin:0 1rem .8rem; }
+.q .sqlbtn:hover { color:var(--accent); border-color:var(--accent); }
+.q pre { margin:0 1rem .9rem; padding:.8rem .9rem; background:var(--paper);
+  border:1px solid var(--rule); border-radius:7px; overflow-x:auto;
+  font-family:var(--mono); font-size:.72rem; line-height:1.5; }
+.q pre[hidden] { display:none; }
+.tblwrap { overflow-x:auto; border-top:1px solid var(--rule); }
+table { border-collapse:collapse; width:100%; font-size:.85rem; }
+th, td { text-align:left; padding:.45rem 1rem; border-bottom:1px solid var(--rule); white-space:nowrap; }
+th { font-family:var(--mono); font-size:.68rem; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--muted); font-weight:500; }
+td:not(:first-child) { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+tbody tr:last-child td { border-bottom:0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation-duration:.001ms!important; transition-duration:.001ms!important; }
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="wrap">
+  <a class="back" href="index.html">Back to site</a>
+
+  <header>
+    <h1>Long-Distance Co-op</h1>
+    <p class="lede">My friends are not in the same city any more, which rules out most of what Steam calls co-op. This finds the games we can actually play together, from different houses, on different machines, without all of us buying a copy. We call the result friendslop. It is affectionate.</p>
+  </header>
+
+  <main id="main">
+
+    <h2>The data</h2>
+    <div class="tiles" id="tiles" aria-live="polite">
+      <div class="tile"><b>&mdash;</b><span>loading</span></div>
+    </div>
+    <p class="note" style="margin-top:.9rem">Every game here has at least 150 reviews, because a rating built on four of them tells you nothing. I rank by the lower bound of a Wilson confidence interval rather than the raw positive percentage, so a game at 5 out of 5 does not outrank one at 48,000 out of 50,000.</p>
+    <p class="note">The part that took the work: Steam files four different things under "co-op". <strong>Online Co-op</strong> means you each own it and play over the internet. <strong>Shared/Split Screen</strong> and <strong>LAN</strong> mean you are in the same room or on the same network, which is no use to us. And <strong>Remote Play Together</strong> means one person owns it and streams it to everyone else, which is the one nobody knows about and the reason half this list is affordable. My first version collapsed all four into one flag and would happily have told us to play split-screen games from different states.</p>
+    <p class="note">Those distinctions live in Steam's category data, not its tags, and the category data is localised per game: Counter-Strike comes back in Polish, Dota and Apex in Russian. So the build maps the phrases that matter across the languages actually present in the file. Where a game's mode still cannot be established it is marked unknown rather than guessed at, which is 190 of them.</p>
+
+    <h2>Find something to play</h2>
+    <div class="controls">
+      <div class="ctl">
+        <label for="f-mode">Where everyone is</label>
+        <select id="f-mode">
+          <option value="apart">Different places</option>
+          <option value="room">Same room</option>
+          <option value="any">Either is fine</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label for="f-price">Most each of us will spend</label>
+        <input type="range" id="f-price" min="0" max="70" step="5" value="70">
+        <span class="rangeval" id="price-out">any price</span>
+      </div>
+      <div class="ctl">
+        <label for="f-sort">Order by</label>
+        <select id="f-sort">
+          <option value="score">Best reviewed</option>
+          <option value="pop">Most played</option>
+          <option value="new">Newest</option>
+          <option value="cheap">Cheapest</option>
+          <option value="deal">Biggest discount</option>
+        </select>
+      </div>
+    </div>
+    <div class="ctl" style="margin-top:1rem">
+      <label id="opt-label">Constraints</label>
+      <div class="chips" role="group" aria-labelledby="opt-label">
+        <label class="opt"><input type="checkbox" id="f-rpt"> Only one of us has to buy it</label>
+        <label class="opt"><input type="checkbox" id="f-xp"> We are on different devices</label>
+        <label class="opt"><input type="checkbox" id="f-sale"> On sale right now</label>
+      </div>
+    </div>
+    <div class="ctl" style="margin-top:1rem">
+      <label id="genre-label">Genres</label>
+      <div class="chips" id="genres" role="group" aria-labelledby="genre-label"></div>
+    </div>
+
+    <p class="meta" id="find-meta" role="status" aria-live="polite">Loading the dataset...</p>
+    <ul class="list" id="find-list"></ul>
+
+    <h2>Games like one I already liked</h2>
+    <div class="controls">
+      <div class="ctl" style="grid-column:1 / -1">
+        <label for="f-seed">Name a game you enjoyed</label>
+        <input type="search" id="f-seed" list="game-names" placeholder="Start typing, e.g. Hades" autocomplete="off">
+        <datalist id="game-names"></datalist>
+      </div>
+    </div>
+    <p class="meta" id="rec-meta" role="status" aria-live="polite">Pick a game and I will find the closest matches.</p>
+    <ul class="list" id="rec-list"></ul>
+    <p class="note">I represent each game as a vector of its eight rarest tags, weighted by how uncommon each tag is across the whole set, and take the cosine between two of those vectors. The weighting is what makes it work. Nearly everything is tagged Action or Indie, so without it almost every pair looks similar.</p>
+
+    <h2>What the data says</h2>
+    <div id="charts"></div>
+
+    <h2>Testing whether the findings hold</h2>
+    <p class="note">Two of the SQL results look striking. Grouped averages are easy to believe and easy to be wrong about, so I refit them as regressions in R. One of the two mostly falls apart.</p>
+    <div id="stats"></div>
+
+    <h2>Asking it in SQL</h2>
+    <p class="note">The browser tool reads a file I prepared ahead of time. The questions below I asked the other way: all six CSVs loaded into SQLite, 2.9 million rows, queried directly. Every number here came out of the query shown beside it.</p>
+    <div id="sql"></div>
+
+  </main>
+
+  <footer>
+    <p>I built this. The data is a public snapshot of the Steam store and SteamSpy, via the <a href="https://github.com/NewbieIndieGameDev/steam-insights">steam-insights</a> dataset.</p>
+    <p>Steam is a trademark of Valve Corporation. This is an independent student project, not affiliated with or endorsed by Valve.</p>
+    <p>Prices and review counts come from that snapshot, not from Steam right now. Check the store before you buy anything.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // carry the accessibility settings over from the main site
+  try {
+    var pf = JSON.parse(localStorage.getItem("sr-a11y") || "{}");
+    var rt = document.documentElement;
+    if (pf.theme && pf.theme !== "system") rt.setAttribute("data-theme", pf.theme);
+    if (pf.cvd && pf.cvd !== "off") rt.setAttribute("data-cvd", pf.cvd);
+    if (pf.contrast === "high") rt.setAttribute("data-contrast", "high");
+    if (pf.underline === "on") rt.setAttribute("data-underline", "on");
+    if (pf.scale) rt.style.setProperty("--scale", pf.scale);
+  } catch (e) { /* storage off, defaults are fine */ }
+
+  var GAMES = [], IDF = {}, VEC = {}, GENRES = [], picked = [];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); };
+
+  // ---- load ----
+  fetch("data/coop.json")
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) { GAMES = d.games; ready(d); })
+    .catch(function () {
+      $("find-meta").textContent =
+        "Could not load the dataset. If you are viewing this from a file:// path or an embedded preview, that request is blocked. It works on the live site.";
+    });
+
+  function ready(d) {
+    buildVectors();
+    buildTiles(d);
+    buildGenres();
+    buildNames();
+    wireOptions();
+    runFind();
+    buildCharts();
+    buildSQL();
+    buildStats();
+  }
+
+  // ---- tag vectors, weighted by how rare each tag is ----
+  function buildVectors() {
+    var n = GAMES.length, df = {};
+    GAMES.forEach(function (g) {
+      (g.k || []).forEach(function (t) { df[t] = (df[t] || 0) + 1; });
+    });
+    Object.keys(df).forEach(function (t) { IDF[t] = Math.log(n / df[t]); });
+    GAMES.forEach(function (g) {
+      var v = {}, sum = 0;
+      (g.k || []).forEach(function (t) { var w = IDF[t] || 0; v[t] = w; sum += w * w; });
+      v.__norm = Math.sqrt(sum) || 1;
+      VEC[g.i] = v;
+    });
+  }
+
+  function cosine(a, b) {
+    var va = VEC[a.i], vb = VEC[b.i], dot = 0;
+    for (var t in va) {
+      if (t !== "__norm" && vb[t]) dot += va[t] * vb[t];
+    }
+    return dot / (va.__norm * vb.__norm);
+  }
+
+  // ---- summary ----
+  function buildTiles(d) {
+    var paid = GAMES.filter(function (g) { return g.p > 0; });
+    var med = paid.map(function (g) { return g.p; }).sort(function (a, b) { return a - b; });
+    var n = function (x) { return x.toLocaleString(); };
+    var tiles = [
+      [n(GAMES.filter(function (g) { return g.tog === true; }).length), "playable from different houses"],
+      [n(GAMES.filter(function (g) { return g.rpt; }).length), "need only one person to own them"],
+      [n(GAMES.filter(function (g) { return g.p === 0; }).length), "cost nothing at all"],
+      ["$" + (med.length ? med[Math.floor(med.length / 2)].toFixed(2) : "0"), "median price of the rest"]
+    ];
+    $("tiles").innerHTML = tiles.map(function (t) {
+      return '<div class="tile"><b>' + t[0] + "</b><span>" + t[1] + "</span></div>";
+    }).join("");
+  }
+
+  function wireOptions() {
+    ["f-rpt", "f-xp", "f-sale"].forEach(function (id) {
+      var el = $(id); if (el) el.addEventListener("change", runFind);
+    });
+  }
+
+  function buildGenres() {
+    var c = {};
+    GAMES.forEach(function (g) { (g.g || []).forEach(function (x) { c[x] = (c[x] || 0) + 1; }); });
+    GENRES = Object.keys(c).sort(function (a, b) { return c[b] - c[a]; }).slice(0, 10);
+    $("genres").innerHTML = GENRES.map(function (g) {
+      return '<button type="button" class="chip" aria-pressed="false" data-g="' + esc(g) + '">' + esc(g) + "</button>";
+    }).join("");
+    $("genres").addEventListener("click", function (e) {
+      var b = e.target.closest(".chip");
+      if (!b) return;
+      b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
+      runFind();
+    });
+  }
+
+  function buildNames() {
+    $("game-names").innerHTML = GAMES.slice(0, 1200).map(function (g) {
+      return '<option value="' + esc(g.n) + '">';
+    }).join("");
+  }
+
+  // ---- find ----
+  function runFind() {
+    var where = $("f-mode").value;
+    var cap = +$("f-price").value;
+    var sort = $("f-sort").value;
+    var needRpt = $("f-rpt").checked, needXp = $("f-xp").checked, needSale = $("f-sale").checked;
+    var want = [].slice.call(document.querySelectorAll('.chip[aria-pressed="true"]'))
+                 .map(function (b) { return b.dataset.g; });
+
+    var out = GAMES.filter(function (g) {
+      // the whole point of the tool. "different places" means online co-op or
+      // remote play together, and explicitly NOT a split-screen-only game.
+      if (where === "apart" && g.tog !== true) return false;
+      if (where === "room" && !(g.couch || g.lan || g.tog === true)) return false;
+      if (needRpt && !g.rpt) return false;
+      if (needXp && !g.xp) return false;
+      if (needSale && !(g.dc > 0)) return false;
+      // with remote play together only one copy is needed, so the budget is
+      // about what each person pays, and that is zero for everyone but the host
+      var cost = (needRpt && g.rpt) ? 0 : g.p;
+      if (cap < 70 && cost > cap) return false;
+      if (want.length && !want.some(function (w) { return (g.g || []).indexOf(w) > -1; })) return false;
+      return true;
+    });
+
+    out.sort(function (a, b) {
+      if (sort === "pop") return b.t - a.t;
+      if (sort === "new") return (b.y || 0) - (a.y || 0);
+      if (sort === "cheap") return a.p - b.p || b.s - a.s;
+      if (sort === "deal") return (b.dc || 0) - (a.dc || 0) || b.s - a.s;
+      return b.s - a.s;
+    });
+
+    var unknown = GAMES.filter(function (g) { return g.tog === null; }).length;
+    $("find-meta").textContent = out.length
+      ? out.length.toLocaleString() + " games fit. Showing the top 20."
+        + (where === "apart" ? " Split-screen-only games are excluded, which is the point." : "")
+      : "Nothing fits that combination. Dropping a genre or raising the budget is usually what does it.";
+    render($("find-list"), out.slice(0, 20));
+  }
+
+  // ---- recommend ----
+  function runRec(name) {
+    var seed = GAMES.find(function (g) { return g.n.toLowerCase() === name.toLowerCase(); });
+    if (!seed) {
+      $("rec-meta").textContent = 'No game called "' + name + '" in the set. It needs at least 150 reviews to be here.';
+      $("rec-list").innerHTML = "";
+      return;
+    }
+    var scored = GAMES
+      .filter(function (g) { return g.i !== seed.i && (g.k || []).length; })
+      .map(function (g) { return { g: g, sim: cosine(seed, g) }; })
+      .filter(function (x) { return x.sim > 0; })
+      .sort(function (a, b) { return b.sim - a.sim || b.g.s - a.g.s; })
+      .slice(0, 12);
+
+    $("rec-meta").textContent = "Closest matches to " + seed.n + ", by shared uncommon tags.";
+    render($("rec-list"), scored.map(function (x) { return x.g; }),
+           scored.map(function (x) {
+             var shared = (seed.k || []).filter(function (t) { return (x.g.k || []).indexOf(t) > -1; });
+             return shared.length ? "Shares " + shared.slice(0, 3).join(", ") : null;
+           }));
+  }
+
+  // ---- render ----
+  function render(el, list, whys) {
+    if (!list.length) { el.innerHTML = ""; return; }
+    el.innerHTML = list.map(function (g, idx) {
+      var why = whys && whys[idx];
+      // say how you would actually play it together, in that order of use
+      var flags = [];
+      if (g.rpt) flags.push("one copy, streamed");
+      if (g.on) flags.push("online co-op");
+      if (g.xp) flags.push("cross-platform");
+      if (g.couch && !g.on && !g.rpt) flags.push("same room only");
+      if (g.lan && !g.on && !g.rpt) flags.push("same network only");
+      if (g.tog === null) flags.push("co-op mode unconfirmed");
+      if (g.fam) flags.push("family sharing");
+      if (g.pad) flags.push("controller");
+      return '<li class="row">' +
+        '<h3><a href="https://store.steampowered.com/app/' + g.i + '/" rel="noopener">' + esc(g.n) + "</a></h3>" +
+        '<p class="sub">' + (g.y || "") + (g.d ? " &middot; " + esc(g.d) : "") + "</p>" +
+        '<p class="right"><span class="pct">' + Math.round(g.s * 100) + "%</span>" +
+          '<span class="price">' + (g.p > 0
+             ? (g.dc > 0 ? "$" + g.p.toFixed(2) + " (" + g.dc + "% off)" : "$" + g.p.toFixed(2))
+             : "free") + "</span>" +
+          '<span class="price">' + g.t.toLocaleString() + " reviews</span></p>" +
+        '<p class="tagline">' + flags.concat((g.g || []).slice(0, 2)).map(function (f) {
+            return "<span>" + esc(f) + "</span>"; }).join("") + "</p>" +
+        (why ? '<p class="why">' + esc(why) + "</p>" : "") +
+        "</li>";
+    }).join("");
+  }
+
+  // ---- charts ----
+  function buildCharts() {
+    var bands = [[0,0,"Free"],[0.01,9.99,"$0 to $10"],[10,19.99,"$10 to $20"],
+                 [20,39.99,"$20 to $40"],[40,999,"$40 and up"]];
+    var rows = bands.map(function (b) {
+      var set = GAMES.filter(function (g) { return g.p >= b[0] && g.p <= b[1]; });
+      var avg = set.length ? set.reduce(function (s, g) { return s + g.s; }, 0) / set.length : 0;
+      return { label: b[2], val: avg, n: set.length };
+    }).filter(function (r) { return r.n > 20; });
+
+    var max = Math.max.apply(null, rows.map(function (r) { return r.val; }));
+    var html = "<p class=\"note\">Paying more does not buy a better-reviewed game. Each bar is the mean Wilson score of every game in that price band.</p><div class=\"bars\">" +
+      rows.map(function (r) {
+        return '<div class="bar"><span>' + r.label + '</span>' +
+          '<span class="track"><span class="fill" style="width:' + (r.val / max * 100).toFixed(1) + '%"></span></span>' +
+          '<span class="num">' + Math.round(r.val * 100) + "% &middot; n=" + r.n + "</span></div>";
+      }).join("") + "</div>";
+
+    var gc = {};
+    GAMES.forEach(function (g) {
+      (g.g || []).forEach(function (x) {
+        gc[x] = gc[x] || { n: 0, s: 0 };
+        gc[x].n++; gc[x].s += g.s;
+      });
+    });
+    var gr = Object.keys(gc).filter(function (k) { return gc[k].n >= 60; })
+      .map(function (k) { return { label: k, val: gc[k].s / gc[k].n, n: gc[k].n }; })
+      .sort(function (a, b) { return b.val - a.val; }).slice(0, 8);
+    var gmax = Math.max.apply(null, gr.map(function (r) { return r.val; }));
+
+    html += "<p class=\"note\" style=\"margin-top:1.8rem\">Genres that hold up best, among those with at least 60 games.</p><div class=\"bars\">" +
+      gr.map(function (r) {
+        return '<div class="bar"><span>' + esc(r.label) + '</span>' +
+          '<span class="track"><span class="fill" style="width:' + (r.val / gmax * 100).toFixed(1) + '%"></span></span>' +
+          '<span class="num">' + Math.round(r.val * 100) + "% &middot; n=" + r.n + "</span></div>";
+      }).join("") + "</div>";
+
+    $("charts").innerHTML = html;
+  }
+
+  // ---- SQL analysis ----
+  function buildSQL() {
+    fetch("data/analysis.json")
+      .then(function (r) { return r.json(); })
+      .then(function (qs) {
+        $("sql").innerHTML = qs.map(function (q, i) {
+          var head = q.cols.map(function (c) {
+            return "<th>" + esc(c.replace(/_/g, " ")) + "</th>"; }).join("");
+          var body = q.rows.map(function (r) {
+            return "<tr>" + r.map(function (c) {
+              return "<td>" + esc(c === null ? "" : c) + "</td>"; }).join("") + "</tr>";
+          }).join("");
+          return '<div class="q"><h3>' + esc(q.title) + "</h3>" +
+            '<p class="note">' + esc(q.note) + "</p>" +
+            '<button type="button" class="sqlbtn" aria-expanded="false" aria-controls="sql' + i + '">Show the query</button>' +
+            '<pre id="sql' + i + '" hidden><code>' + esc(q.sql) + "</code></pre>" +
+            '<div class="tblwrap"><table><thead><tr>' + head + "</tr></thead><tbody>" + body + "</tbody></table></div></div>";
+        }).join("");
+        $("sql").addEventListener("click", function (e) {
+          var b = e.target.closest(".sqlbtn");
+          if (!b) return;
+          var pre = document.getElementById(b.getAttribute("aria-controls"));
+          var open = b.getAttribute("aria-expanded") === "true";
+          b.setAttribute("aria-expanded", open ? "false" : "true");
+          pre.hidden = open;
+          b.textContent = open ? "Show the query" : "Hide the query";
+        });
+      })
+      .catch(function () { $("sql").innerHTML = '<p class="empty">Could not load the analysis.</p>'; });
+  }
+
+  // ---- regression results ----
+  function buildStats() {
+    fetch("data/stats.json").then(function (r) { return r.json(); }).then(function (x) {
+      var m2 = x.m2.coefs.filter(function (c) { return c.term === "many_locales"; })[0];
+      var rows = x.m2.coefs.map(function (c) {
+        return "<tr><td>" + esc(c.term.replace(/_/g, " ")) + "</td><td>" +
+          (c.beta > 0 ? "+" : "") + c.beta.toFixed(2) + "</td><td>" + c.se.toFixed(2) +
+          "</td><td>" + c.t.toFixed(1) + "</td><td>" +
+          (c.p < 0.001 ? "&lt;0.001" : c.p.toFixed(3)) + "</td></tr>";
+      }).join("");
+
+      $("stats").innerHTML =
+        '<div class="q"><h3>Do games in more languages really review better?</h3>' +
+        '<p class="note">The grouped averages say games in more than 15 languages beat English-only ones by ' +
+          x.raw.gap.toFixed(1) + ' points (t = ' + x.raw.t + ', n = ' + x.n.toLocaleString() +
+          '). But publishers localise games that already sold. Localised games here carry a median ' +
+          x.confound.many_median_reviews.toLocaleString() + ' reviews against ' +
+          x.confound.few_median_reviews.toLocaleString() + ', so popularity and localisation travel together.</p>' +
+        '<p class="note">Put review count, release year, price and whether it is indie into the model and the localisation coefficient drops from ' +
+          x.m1.coefs[0].beta.toFixed(2) + ' to ' + m2.beta.toFixed(2) +
+          ' points. <strong>' + x.shrink + '% of the apparent effect was the confounder.</strong> What is left is real (p = ' +
+          m2.p.toFixed(3) + ') and about a quarter the size of the headline.</p>' +
+        '<div class="tblwrap"><table><thead><tr><th>term</th><th>beta</th><th>std err</th><th>t</th><th>p</th></tr></thead><tbody>' +
+          rows + '</tbody></table></div></div>' +
+
+        '<div class="q"><h3>And the price finding?</h3>' +
+        '<p class="note">The price bands differ, and the F test is emphatic (F = ' + x.price_anova.F +
+          ', p &lt; 0.001). It also explains an R&sup2; of ' + x.price_anova.r2 +
+          '. Price accounts for about 1% of why one game reviews better than another. Significant and useless are different things, and only the first is what a p value reports.</p>' +
+        '<div class="tblwrap"><table><thead><tr><th>band</th><th>mean score</th><th>games</th></tr></thead><tbody>' +
+          x.price_bands.map(function (b) {
+            return "<tr><td>" + esc(b.band) + "</td><td>" + b.mean + "%</td><td>" +
+              b.n.toLocaleString() + "</td></tr>"; }).join("") +
+        '</tbody></table></div></div>' +
+        '<p class="note">Models fitted in R with <code>lm()</code>. The script is <a href="analysis.R.txt">analysis.R</a>.</p>';
+    }).catch(function () { $("stats").innerHTML = '<p class="empty">Could not load the model output.</p>'; });
+  }
+
+  // ---- wiring ----
+  $("f-price").addEventListener("input", function () {
+    var v = +this.value;
+    $("price-out").textContent = v >= 70 ? "any price" : v === 0 ? "free only" : "up to $" + v;
+    runFind();
+  });
+  $("f-mode").addEventListener("change", runFind);
+  $("f-sort").addEventListener("change", runFind);
+
+  var t;
+  $("f-seed").addEventListener("input", function () {
+    var v = this.value.trim();
+    clearTimeout(t);
+    if (!v) { $("rec-meta").textContent = "Pick a game and I will find the closest matches."; $("rec-list").innerHTML = ""; return; }
+    t = setTimeout(function () { runRec(v); }, 260);
+  });
+})();
+</script>
+</body>
+</html>

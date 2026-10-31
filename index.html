@@ -1,0 +1,2552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shawn Rao</title>
+<meta name="description" content="Shawn Rao, Data Science undergraduate at the University of Michigan College of Engineering. Web interfaces in JavaScript, HTML5 and CSS3; systems work in C++.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   shawnrao21.github.io - personal site
+   One file. No framework, no build step, no dependencies.
+
+   WHERE THINGS ARE
+     1. :root        colors, fonts, spacing. change colors here, nowhere else.
+     2. theme blocks dark / colorblind / high contrast overrides of :root
+     3. components   masthead, rail, panel, sections, cards, form
+     4. <body>       content, marked with SECTION comments
+     5. <script>     CONFIG block first, then one function per feature
+
+   TO CHANGE TEXT      edit the HTML, not the JS. content is all in markup
+                       so it still works with JS off.
+   TO CHANGE COLORS    edit the token values in :root, then check the dark
+                       and high-contrast blocks below still look right.
+   TO ADD A SECTION    copy a <section> block, give it a unique id, add a
+                       matching <a href="#id"> in the rail nav.
+   EMAIL DELIVERY      FORM_ENDPOINT in the CONFIG block. empty = the form
+                       falls back to copy + mailto.
+   ========================================================================= */
+
+/* ---- 1. tokens: light theme is the base, everything else overrides it ---- */
+:root {
+  color-scheme: light;
+  --paper:   #f7f8fa;
+  --surface: #ffffff;
+  --ink:     #11151b;
+  --muted:   #59616f;
+  --rule:    #dfe3ea;
+  --accent:  #0a6fb8;
+  --accent2: #9e630b;        /* 4.66:1 on paper. #a8690c measured 4.21, under AA */
+  --up:      #0a7f5f;
+  --down:    #b5324a;
+  --glow:    rgba(10,111,184,.10);
+  --focus:   #0a6fb8;
+
+  --display: "Newsreader", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --scale: 1;
+  --measure: 66ch;
+  --gutter: clamp(16px, 4vw, 3rem);
+  --ease: cubic-bezier(.22,.61,.36,1);
+
+  /* how hard the hero chart is drawn. the high-contrast block raises all of
+     these. draw() reads them, so the intensity lives here, not in the js. */
+  --tape-op: 1;
+  --tape-line-a: .95;
+  --tape-fill-a: .1;
+  --tape-grid-a: .6;
+  --tape-w: 2.2;
+}
+
+/* ---- 2. dark: follows the OS unless the user picked light ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper:   #0b0e13;
+    --surface: #141922;
+    --ink:     #e9edf4;
+    --muted:   #8e97a8;
+    --rule:    #212936;
+    --accent:  #4cc3f0;
+    --accent2: #f0a93c;
+    --up:      #3ddc97;
+    --down:    #ff6b81;
+    --glow:    rgba(76,195,240,.16);
+    --focus:   #4cc3f0;
+  }
+}
+
+/* ---- dark: picked in the panel ---- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper:   #0b0e13;
+  --surface: #141922;
+  --ink:     #e9edf4;
+  --muted:   #8e97a8;
+  --rule:    #212936;
+  --accent:  #4cc3f0;
+  --accent2: #f0a93c;
+  --up:      #3ddc97;
+  --down:    #ff6b81;
+  --glow:    rgba(76,195,240,.16);
+  --focus:   #4cc3f0;
+}
+
+/* ---- colorblind-safe palettes. Okabe-Ito, not hues I picked by eye.
+        rg: red/green swapped for blue/orange (deuteranopia, protanopia)
+        by: avoids the blue/yellow axis (tritanopia)
+        both also separate in greyscale, so color is never the only cue ---- */
+:root[data-cvd="rg"] {
+  --accent:  #0072b2;
+  --accent2: #966700;        /* okabe-ito orange darkened for text: #e69f00 is 2.12:1 on white */
+  --up:      #56b4e9;
+  --down:    #d55e00;
+  --glow:    rgba(0,114,178,.14);
+  --focus:   #0072b2;
+}
+:root[data-cvd="rg"][data-theme="dark"],
+:root[data-cvd="rg"]:not([data-theme="light"]) {
+  --accent:  #56b4e9;
+  --accent2: #e69f00;
+  --up:      #56b4e9;
+  --down:    #e69f00;
+  --focus:   #56b4e9;
+}
+/* tritanopia: magenta against teal */
+:root[data-cvd="by"] {
+  --accent:  #007d7d;        /* 4.67:1. #008080 measured 4.49, a hair under AA */
+  --accent2: #c2185b;
+  --up:      #008080;
+  --down:    #c2185b;
+  --glow:    rgba(0,128,128,.14);
+  --focus:   #007d7d;
+}
+:root[data-cvd="by"][data-theme="dark"],
+:root[data-cvd="by"]:not([data-theme="light"]) {
+  --accent:  #4ecdc4;
+  --accent2: #ff6fb5;
+  --up:      #4ecdc4;
+  --down:    #ff6fb5;
+  --focus:   #4ecdc4;
+}
+
+/* ---- high contrast ---- */
+:root[data-contrast="high"] {
+  --paper:   #ffffff;
+  --surface: #ffffff;
+  --ink:     #000000;
+  --muted:   #2b3038;
+  --rule:    #4a515c;
+}
+:root[data-contrast="high"][data-theme="dark"],
+:root[data-contrast="high"]:not([data-theme="light"]) {
+  --paper:   #000000;
+  --surface: #0a0d12;
+  --ink:     #ffffff;
+  --muted:   #d4d9e2;
+  --rule:    #8d96a4;
+}
+/* the tape is not hidden at high contrast any more, it is drawn harder. hiding
+   it left the volatility button controlling nothing a reader could see. */
+:root[data-contrast="high"] {
+  --tape-op: 1; --tape-line-a: 1; --tape-fill-a: .08;
+  --tape-grid-a: .85; --tape-w: 2.5;
+}
+:root[data-contrast="high"] .project,
+:root[data-contrast="high"] .skills dd span,
+:root[data-contrast="high"] .stack li,
+:root[data-contrast="high"] input,
+:root[data-contrast="high"] textarea { border-width: 2px; }
+
+/* ---- underline every link. WCAG 1.4.1: color alone is not enough ---- */
+:root[data-underline="on"] a { text-decoration: underline !important; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--rail-h, 3.4rem) + 14px);
+  font-size: calc(100% * var(--scale));
+}
+:root[data-motion="reduce"] html, html[data-motion="reduce"] { scroll-behavior: auto; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.wrap { max-width: 64rem; margin: 0 auto; padding: 0 var(--gutter); }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+:is(a, button, input, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.skip {
+  position: absolute;
+  left: .6rem;
+  top: -4rem;
+  z-index: 100;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: .6rem 1rem;
+  font-size: .85rem;
+  text-decoration: none;
+  transition: top .18s var(--ease);
+}
+.skip:focus { top: .6rem; }
+
+.vh {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- 3. components ----------------------------------------------- */
+
+/* masthead */
+.hero { position: relative; isolation: isolate; }
+
+/* the chart lives in a band UNDER the masthead text, never behind it. when it
+   ran full-bleed a peak crossing the standfirst dropped that text to 3.7:1,
+   under AA. --tape-top is measured from the real text block in js, so it holds
+   at any width and any text size instead of being a guessed percentage. */
+/* the canvas stays full-bleed and the MASK decides where it paints: nothing
+   above --tape-top, which js measures from the bottom of the masthead text.
+   it is masked rather than positioned because a canvas is a replaced element,
+   so top+bottom alone leave it at its intrinsic 300x150 and silently shrink. */
+#tape {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  z-index: -1;
+  opacity: var(--tape-op);
+  --tape-fade: calc(var(--tape-top, 52%) + var(--tape-fade-px, 26px));
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent 0, transparent var(--tape-top, 52%), #000 var(--tape-fade), #000 100%);
+  mask-image: linear-gradient(to bottom,
+    transparent 0, transparent var(--tape-top, 52%), #000 var(--tape-fade), #000 100%);
+}
+
+.masthead {
+  padding: clamp(32px, 9vw, 6rem) 0 clamp(20px, 4vw, 2.6rem);
+  display: grid;
+  gap: clamp(14px, 4vw, 2rem);
+  align-items: center;
+}
+@media (min-width: 880px) {
+  .masthead { grid-template-columns: minmax(0, 1fr) auto; gap: 3.2rem; }
+}
+
+/* volatility toggle. the tape is a random walk; this switches the regime
+   between calm and stressed, which is how real price series behave. */
+/* the label is a sentence, not a tag, so it is sentence case and it wraps.
+   a pill radius looks broken over two lines, hence the flat-ish corners. */
+.vol {
+  grid-column: 1; justify-self: start;
+  display: inline-flex; align-items: flex-start; gap: .5rem;
+  font-family: var(--mono); font-size: .75rem; line-height: 1.45;
+  letter-spacing: .01em; text-align: left;
+  max-width: min(100%, 24rem);
+  color: var(--muted); background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 11px;
+  padding: .45rem .8rem; margin-top: 1rem; cursor: pointer; min-height: 1.9rem;
+  transition: color .22s var(--ease), border-color .22s var(--ease);
+}
+.vol:hover { color: var(--ink); border-color: var(--accent); }
+.hero :is(h1, .standfirst, .contact-line) { cursor: auto; }
+/* the dot sits on the first line's centre, not the middle of a wrapped block */
+.vol .dot {
+  width: .45rem; height: .45rem; border-radius: 50%;
+  background: var(--accent); flex: none; margin-top: .32rem;
+  transition: background .25s var(--ease);
+}
+.vol[aria-pressed="true"] { color: var(--down); border-color: var(--down); }
+.vol[aria-pressed="true"] .dot { background: var(--down); }
+.js-on:not(.no-anim) .vol[aria-pressed="true"] .dot { animation: pulse 1.1s ease-out infinite; }
+
+.portrait { margin: 0; justify-self: start; }
+.portrait img {
+  display: block;
+  width: clamp(140px, 27vw, 240px);   /* px, so the text-size setting leaves it alone */
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 13px;
+  border: 1px solid var(--rule);
+  box-shadow: 0 20px 44px -24px rgba(0,0,0,.6), 0 0 0 4px var(--glow);
+}
+.js-on .portrait { opacity: 0; transform: translateY(12px) scale(.985); }
+.js-on .portrait.in {
+  opacity: 1; transform: none;
+  transition: opacity .8s var(--ease) .18s, transform .8s var(--ease) .18s;
+}
+.no-anim .portrait, .no-anim .portrait.in,
+:root:not(.js-on) .portrait { opacity: 1; transform: none; transition: none; }
+
+h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(min(2.7rem, 14vw), 9vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  margin: 0 0 min(1rem, 20px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 .28em;
+}
+/* ---- the shine across the name ----
+   the usual way to do this is background-clip:text with transparent text, and
+   on the one element that is the person's name that is a bad trade: where the
+   technique is unsupported the name disappears. two guards. the gradient is
+   ink everywhere except a narrow band, so ANY resting position paints the name
+   its normal colour; and the whole thing sits behind @supports, so a browser
+   without background-clip:text never sees transparent text at all.
+   The band is a muted grey, not a highlight: on a light background a genuine
+   highlight means less contrast, and this is the largest text on the page. */
+:root { --shine: #6b7585; }
+:root[data-theme="dark"], :root:not([data-theme="light"]) { --shine: #4cc3f0; }
+:root[data-cvd="by"][data-theme="dark"], :root[data-cvd="by"]:not([data-theme="light"]) { --shine: #4ecdc4; }
+:root[data-cvd="rg"][data-theme="dark"], :root[data-cvd="rg"]:not([data-theme="light"]) { --shine: #56b4e9; }
+
+@supports ((-webkit-background-clip: text) and (background-clip: text)) {
+  :root.js-on:not([data-contrast="high"]) h1.shine {
+    background-image: linear-gradient(100deg,
+      var(--ink) 0%,
+      var(--ink) calc(50% - var(--shine-w, 10%)),
+      var(--shine) 50%,
+      var(--ink) calc(50% + var(--shine-w, 10%)),
+      var(--ink) 100%);
+    background-size: 300% 100%;
+    background-position: 100% 0;   /* must stay within 0..100 or coverage breaks */
+    background-repeat: no-repeat;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: name-shine 2.1s var(--ease) .45s 1;
+  }
+  :root.js-on:not([data-contrast="high"]) h1.shine .w {
+    color: inherit; -webkit-text-fill-color: inherit;
+  }
+}
+@keyframes name-shine {
+  from { background-position: 100% 0; }
+  to   { background-position: 0% 0; }
+}
+/* high contrast gets the plain solid name: a gradient is the wrong answer
+   for someone who asked for maximum contrast. */
+:root[data-contrast="high"] h1 {
+  background-image: none !important; -webkit-text-fill-color: currentColor !important;
+  animation: none !important;
+}
+/* reduced motion asked for less MOTION, not for the effect to vanish. killing
+   the gradient outright meant anyone with that setting on saw no sheen at all
+   and reasonably concluded it was broken. so: keep the sheen, park it, and
+   stop it moving. no animation, and the scroll handler leaves it alone. */
+:root[data-motion="reduce"]:not([data-contrast="high"]) h1 {
+  animation: none !important;
+  background-position: 62% 0 !important;
+}
+
+/* the name is VISIBLE by default and the entrance starts from hidden inside
+   the keyframes. it used to be opacity:0 in the base rule, which meant the
+   single most important element on the page was invisible unless an animation
+   ran to completion. anything that stops that animation, a browser that drops
+   the keyframe, a paint the compositor never gets to, leaves a blank masthead.
+   same correction already made to the section marks; I left it on the one
+   element where it mattered most. */
+h1 .w { display: inline-block; opacity: 1; }
+.js-on h1 .w { animation: rise .75s var(--ease) backwards; }
+h1 .w:nth-child(2) { animation-delay: .09s; }
+.no-anim h1 .w { animation: none; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(.42em); }
+  to   { opacity: 1; transform: none; }
+}
+
+.accent-rule {
+  height: 2px; width: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  margin: 0 0 1.35rem;
+  border-radius: 2px;
+}
+.js-on .accent-rule { animation: draw 1s var(--ease) .32s forwards; }
+.no-anim .accent-rule, :root:not(.js-on) .accent-rule { width: 7rem; animation: none; }
+@keyframes draw { to { width: 7rem; } }
+
+.standfirst {
+  font-family: var(--display);
+  font-size: clamp(1.1rem, 2.6vw, 1.42rem);
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--muted);
+  margin: 0 0 min(1.6rem, 26px);
+  max-width: 50ch;
+}
+
+.contact-line {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: .25rem 1.3rem;
+  font-family: var(--mono);
+  font-size: .8rem;
+  color: var(--muted);
+  margin: 0; padding: 0;
+  list-style: none;
+}
+.contact-line a { color: var(--ink); }
+
+/* stat strip */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  overflow: hidden;
+  margin: 0 0 clamp(2rem, 5vw, 3.2rem);
+}
+@media (min-width: 620px) { .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.stats.in-role { margin: .2rem 0 1rem; }
+@media (min-width: 760px) { .stats.now { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.stats.now b { font-size: 1.32rem; }
+.stat { background: var(--surface); padding: .95rem 1.1rem; }
+.stat b {
+  display: block;
+  font-family: var(--mono);
+  font-size: 1.5rem; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.stat span { display: block; font-size: .76rem; color: var(--muted); margin-top: .2rem; line-height: 1.35; }
+
+/* sticky rail */
+.rail {
+  position: sticky; top: 0; z-index: 30;
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter: blur(11px);
+  -webkit-backdrop-filter: blur(11px);
+  border-bottom: 1px solid var(--rule);
+}
+.rail-inner {
+  max-width: 64rem; margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: flex; align-items: center; gap: .6rem;
+}
+/* wrap rather than scroll. a scroller put the last tab off the edge at 1024px
+   with 150% text, with nothing on screen to say it could be scrolled to. the
+   rail measures its own height in js, so a second row is handled. */
+.rail nav {
+  display: flex; align-items: center; gap: .2rem;
+  flex-wrap: wrap;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  position: relative; flex: 1; min-width: 0;
+}
+.rail nav::-webkit-scrollbar { display: none; }
+
+.rail a {
+  font-family: var(--mono);
+  font-size: .74rem;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  padding: .95rem .75rem;
+  white-space: nowrap;
+  transition: color .25s var(--ease);
+}
+.rail a:hover { color: var(--ink); }
+.rail a[aria-current="true"] { color: var(--accent); }
+
+#indicator {
+  position: absolute; bottom: 0; left: 0;
+  height: 2px; width: 0;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: transform .42s var(--ease), width .42s var(--ease);
+  pointer-events: none;
+}
+.no-anim #indicator { transition: none; }
+
+/* mobile menu. below 820px the horizontal rail cannot fit 7 links:
+   on a 390px phone about half of them sit off-screen with no hint they
+   are there. so it collapses into a dropdown and the button shows which
+   section you are in, which is what the sliding underline did. */
+.menu-btn {
+  display: none;
+  align-items: center; gap: .55rem;
+  flex: 1; min-width: 0;
+  font-family: var(--mono); font-size: .74rem;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink); background: transparent;
+  border: 0; padding: .9rem .2rem .9rem 0;
+  cursor: pointer; text-align: left;
+}
+.bars { display: grid; gap: 3px; flex: none; }
+.bars i {
+  display: block; width: 16px; height: 1.6px;
+  background: var(--accent); border-radius: 2px;
+  transition: transform .28s var(--ease), opacity .2s var(--ease);
+}
+.menu-btn[aria-expanded="true"] .bars i:nth-child(1) { transform: translateY(4.6px) rotate(45deg); }
+.menu-btn[aria-expanded="true"] .bars i:nth-child(2) { opacity: 0; }
+.menu-btn[aria-expanded="true"] .bars i:nth-child(3) { transform: translateY(-4.6px) rotate(-45deg); }
+.no-anim .bars i { transition: none; }
+.menu-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.menu-btn[aria-expanded="true"] .menu-label { color: var(--accent); }
+
+@media (max-width: 819px) {
+  .menu-btn { display: flex; }
+  .rail nav {
+    position: absolute; top: 100%; left: 0; right: 0;
+    display: block; overflow: visible;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    box-shadow: 0 16px 34px -20px rgba(0,0,0,.6);
+    max-height: 0; opacity: 0; visibility: hidden;
+    transition: max-height .3s var(--ease), opacity .22s var(--ease), visibility .3s;
+  }
+  .rail nav.open { max-height: 70vh; opacity: 1; visibility: visible; overflow-y: auto; }
+  .no-anim .rail nav { transition: none; }
+  .rail nav a {
+    display: block; padding: .85rem var(--gutter);
+    border-top: 1px solid var(--rule);
+  }
+  .rail nav a:first-child { border-top: 0; }
+  .rail nav a[aria-current="true"] { background: var(--surface); box-shadow: inset 3px 0 0 var(--accent); }
+  #indicator { display: none; }
+  .rail-inner { position: relative; }
+}
+
+.a11y-btn {
+  flex: none;
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-family: var(--mono); font-size: .72rem;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: .42rem .6rem;
+  cursor: pointer;
+  transition: color .22s var(--ease), border-color .22s var(--ease);
+}
+.a11y-btn:hover { color: var(--ink); border-color: var(--accent); }
+.a11y-btn svg { width: 1rem; height: 1rem; fill: currentColor; }
+.a11y-btn .lbl { display: none; }
+@media (min-width: 620px) { .a11y-btn .lbl { display: inline; } }
+
+/* accessibility panel */
+.scrim {
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(0,0,0,.45);
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s var(--ease);
+}
+.scrim.open { opacity: 1; pointer-events: auto; }
+.no-anim .scrim { transition: none; }
+
+.panel {
+  position: fixed; z-index: 50;
+  top: 0; right: 0; bottom: 0;
+  width: min(23rem, 100%);
+  background: var(--paper);
+  border-left: 1px solid var(--rule);
+  padding: 1.3rem 1.4rem 2.5rem;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform .32s var(--ease);
+}
+.panel.open { transform: none; }
+.no-anim .panel { transition: none; }
+.panel[hidden] { display: none; }
+
+.panel h2 {
+  font-family: var(--display);
+  font-size: 1.3rem; font-weight: 600;
+  margin: 0 0 .25rem;
+}
+.panel .lede { font-size: .85rem; color: var(--muted); margin: 0 0 1.3rem; max-width: none; }
+
+.panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.close {
+  flex: none;
+  background: transparent; border: 1px solid var(--rule);
+  border-radius: 6px; color: var(--muted);
+  width: 2rem; height: 2rem;
+  font-size: 1.1rem; line-height: 1; cursor: pointer;
+}
+.close:hover { color: var(--ink); border-color: var(--accent); }
+
+fieldset { border: 0; padding: 0; margin: 0 0 1.4rem; }
+legend {
+  font-family: var(--mono); font-size: .71rem;
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--accent2); padding: 0; margin-bottom: .5rem;
+}
+.opts { display: flex; flex-wrap: wrap; gap: .35rem; }
+.opts label {
+  font-size: .82rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: .35rem .65rem;
+  cursor: pointer;
+  background: var(--surface);
+  transition: border-color .2s var(--ease), color .2s var(--ease);
+}
+.opts input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.opts input:checked + span { color: var(--accent); font-weight: 600; }
+.opts label:has(input:checked) { border-color: var(--accent); }
+.opts label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.reset {
+  font-family: var(--mono); font-size: .74rem;
+  background: transparent; border: 1px solid var(--rule);
+  border-radius: 6px; color: var(--muted);
+  padding: .45rem .8rem; cursor: pointer;
+}
+.reset:hover { color: var(--ink); border-color: var(--accent); }
+
+/* section marks. original line drawings, no third-party logos.
+   stroke uses the theme tokens so they follow dark / colorblind / contrast.
+   decorative: aria-hidden, no alt. a description here would be noise in a
+   screen reader. the portrait is the opposite case and carries a real one. */
+/* mobile: mark sits beside the section title. desktop: stacked under it,
+   in the gutter column, bigger. */
+.sec-head { display: flex; align-items: center; gap: .7rem; }
+.sec-mark {
+  width: clamp(26px, 2rem, 38px);
+  height: clamp(26px, 2rem, 38px);
+  flex: none;
+  overflow: visible;
+}
+@media (min-width: 820px) {
+  .sec-head { display: grid; gap: .9rem; align-content: start; justify-items: start; }
+  .sec-mark { width: 56px; height: 56px; }
+}
+.sec-mark .s { fill: none; stroke: var(--accent); stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round; }
+.sec-mark .s2 { fill: none; stroke: var(--accent2); stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round; }
+.sec-mark .f { fill: var(--accent); }
+.sec-mark .f2 { fill: var(--accent2); }
+.sec-mark .dim { opacity: .4; }
+
+/* ---- word effects in the tagline ----
+   each one is tied to what the word means: Data Science splits and resolves,
+   build assembles, pipelines gets a line running through it, sit on top drops
+   into place. the text itself never changes opacity and is never replaced by
+   a pseudo-element, so a failed animation can only cost the effect, never the
+   sentence. they run once, after the name has finished rising. */
+.fx { display: inline-block; white-space: nowrap; }
+
+.js-on .fx-run .fx-glitch { animation: fx-glitch 1.05s steps(2, end) .55s 1 both; }
+@keyframes fx-glitch {
+  0%, 100% { text-shadow: none; transform: none; }
+  12% { text-shadow: -.055em 0 var(--accent), .055em 0 var(--down); transform: translateX(.5px); }
+  24% { text-shadow: .05em 0 var(--down), -.05em 0 var(--accent); transform: translateX(-1px); }
+  36% { text-shadow: -.03em 0 var(--accent2), .03em 0 var(--accent); transform: none; }
+  48% { text-shadow: .02em 0 var(--accent), -.02em 0 var(--down); }
+  60% { text-shadow: none; }
+}
+
+.js-on .fx-run .fx-build { animation: fx-build .8s var(--ease) .95s 1 both; }
+@keyframes fx-build {
+  0%   { letter-spacing: .22em; transform: translateY(.1em); }
+  55%  { letter-spacing: -.01em; }
+  100% { letter-spacing: normal; transform: none; }
+}
+
+/* a line runs the length of the word, the way something moves down a pipe */
+.fx-flow { position: relative; }
+.fx-flow::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -.08em; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  transform: scaleX(0); transform-origin: left center; opacity: 0;
+}
+.js-on .fx-run .fx-flow::after { animation: fx-flow 1.15s var(--ease) 1.35s 1 forwards; }
+@keyframes fx-flow {
+  0%   { transform: scaleX(0); transform-origin: left center; opacity: 0; }
+  12%  { opacity: .9; }
+  50%  { transform: scaleX(1); transform-origin: left center; opacity: .9; }
+  51%  { transform: scaleX(1); transform-origin: right center; }
+  92%  { transform: scaleX(0); transform-origin: right center; opacity: 0; }
+  100% { transform: scaleX(0); opacity: 0; }
+}
+
+.js-on .fx-run .fx-settle { animation: fx-settle .9s cubic-bezier(.3,1.5,.5,1) 1.75s 1 both; }
+@keyframes fx-settle {
+  0%   { transform: translateY(-.45em); }
+  70%  { transform: translateY(.06em); }
+  100% { transform: none; }
+}
+
+/* reduced motion: the words simply sit there, like any other text */
+:root[data-motion="reduce"] .fx,
+:root[data-motion="reduce"] .fx::after {
+  animation: none !important; transform: none !important;
+  text-shadow: none !important; letter-spacing: normal !important; opacity: 1 !important;
+}
+:root[data-motion="reduce"] .fx-flow::after { opacity: 0 !important; }
+
+/* ---- section marks animate once, when you scroll to them ----
+   every starting state is scoped to .js-on so the marks are simply drawn,
+   complete and still, when javascript is off. reduced motion is handled by
+   the global rule further down: the animations collapse to ~0s and every
+   keyframe set ends on the finished state, so they land drawn, not blank. */
+/* the resting state is the FINISHED drawing, and each animation starts from
+   hidden inside its own keyframes. that way a mark that has not played, or
+   that was reset for replay while half on screen, still renders complete.
+   hiding things up front and relying on the animation to reveal them means a
+   mark can sit there blank if it never fires. */
+.sec-mark .trend, .sec-mark .cmd, .sec-mark .links, .sec-mark .wave {
+  stroke-dasharray: var(--len, 120); stroke-dashoffset: 0;
+}
+.sec-mark .cap, .sec-mark .tassel, .sec-mark .node, .sec-mark .hub,
+.sec-mark .row, .sec-mark .src { transform-box: fill-box; transform-origin: center; }
+
+@keyframes mk-draw { from { stroke-dashoffset: var(--len, 120); } to { stroke-dashoffset: 0; } }
+@keyframes mk-pop  { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: scale(1); } }
+@keyframes mk-slide{ from { opacity: 0; transform: translateX(-7px); } to { opacity: 1; transform: none; } }
+@keyframes mk-toss {
+  0%   { transform: none; }
+  30%  { transform: translateY(-9px) rotate(-16deg); }
+  60%  { transform: translateY(-3px) rotate(10deg); }
+  80%  { transform: translateY(-1px) rotate(-4deg); }
+  100% { transform: none; }
+}
+@keyframes mk-swing {
+  0%, 100% { transform: rotate(0deg); }
+  30%  { transform: rotate(18deg); }
+  65%  { transform: rotate(-9deg); }
+}
+@keyframes mk-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .15; } }
+@keyframes mk-ping { 0% { opacity: .35; } 45% { opacity: 1; } 100% { opacity: .4; } }
+
+/* currently: the line climbs, then the marker lands on the high */
+.sec-mark[data-mark="currently"] .trend { --len: 115; }
+.sec-mark[data-mark="currently"].go .trend { animation: mk-draw .85s var(--ease); }
+.sec-mark[data-mark="currently"].go .tip   { animation: mk-pop .36s var(--ease) .78s backwards; }
+
+/* work: the caret blinks, then a command is typed at the prompt */
+.sec-mark[data-mark="work"] .cmd { --len: 19; }
+.sec-mark[data-mark="work"].go .caret { animation: mk-blink .32s steps(1) 3; }
+.sec-mark[data-mark="work"].go .cmd   { animation: mk-draw .5s steps(6) .62s backwards; }
+
+/* education: the cap gets thrown, the tassel catches up late */
+.sec-mark[data-mark="education"].go .cap    { animation: mk-toss .95s var(--ease); }
+.sec-mark[data-mark="education"].go .tassel { animation: mk-swing 1.1s var(--ease) .12s; }
+
+/* technical: the links reach out, then each node lights up in turn */
+.sec-mark[data-mark="technical"] .links { --len: 60; }
+.sec-mark[data-mark="technical"].go .links { animation: mk-draw .7s var(--ease); }
+.sec-mark[data-mark="technical"].go .hub { animation: mk-pop .34s var(--ease) .18s backwards; }
+.sec-mark[data-mark="technical"].go .n1  { animation: mk-pop .3s var(--ease) .46s backwards; }
+.sec-mark[data-mark="technical"].go .n2  { animation: mk-pop .3s var(--ease) .58s backwards; }
+.sec-mark[data-mark="technical"].go .n3  { animation: mk-pop .3s var(--ease) .70s backwards; }
+.sec-mark[data-mark="technical"].go .n4  { animation: mk-pop .3s var(--ease) .82s backwards; }
+
+/* career: the rows stack up one at a time */
+.sec-mark[data-mark="career"].go .r1 { animation: mk-slide .4s var(--ease) .05s backwards; }
+.sec-mark[data-mark="career"].go .r2 { animation: mk-slide .4s var(--ease) .22s backwards; }
+.sec-mark[data-mark="career"].go .r3 { animation: mk-slide .4s var(--ease) .39s backwards; }
+
+/* contact: the signal goes out one arc at a time, then settles */
+.sec-mark[data-mark="contact"] .w1 { --len: 32; }
+.sec-mark[data-mark="contact"] .w2 { --len: 54; }
+.sec-mark[data-mark="contact"] .w3 { --len: 76; }
+.sec-mark[data-mark="contact"].go .w1 { animation: mk-draw .4s var(--ease) .1s backwards; }
+.sec-mark[data-mark="contact"].go .w2 { animation: mk-draw .45s var(--ease) .26s backwards; }
+.sec-mark[data-mark="contact"].go .w3 { animation: mk-draw .5s var(--ease) .44s backwards; }
+.sec-mark[data-mark="contact"].go .src { animation: mk-ping .8s var(--ease); }
+
+/* reduced motion: state the finished look outright rather than leaning on the
+   animation to land on it. a steps() timing function does not settle on its
+   final value once the duration is forced to zero, which left the typed
+   command line undrawn. js sets data-motion="reduce" for the system setting
+   and the panel alike, so this one rule covers both. */
+:root[data-motion="reduce"] .sec-mark * {
+  animation: none !important;
+  stroke-dashoffset: 0 !important;
+  transform: none !important;
+}
+:root[data-motion="reduce"] .sec-mark :not(.dim) { opacity: 1 !important; }
+:root[data-motion="reduce"] .sec-mark .dim { opacity: .4 !important; }
+
+/* sections */
+section {
+  border-top: 1px solid var(--rule);
+  padding: clamp(2.2rem, 5vw, 3.4rem) 0 clamp(1rem, 2vw, 1.6rem);
+  display: grid; gap: 1.2rem;
+}
+section:first-of-type { border-top: none; }
+@media (min-width: 820px) {
+  section { grid-template-columns: 11rem 1fr; gap: 0 2.6rem; }
+}
+
+.sec-label {
+  font-family: var(--mono);
+  font-size: .74rem; font-weight: 500;
+  letter-spacing: .11em; text-transform: uppercase;
+  color: var(--muted);
+  margin: 0; padding-top: .3rem;
+}
+.sec-label::before {
+  content: "";
+  display: inline-block;
+  width: .4rem; height: .4rem;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: .5rem;
+  vertical-align: .08em;
+}
+
+.sec-body { min-width: 0; }
+.sec-body > :first-child { margin-top: 0; }
+.sec-body > :last-child { margin-bottom: 0; }
+
+p { max-width: var(--measure); margin: 0 0 1rem; }
+
+/* long tokens (requestAnimationFrame, URLs) must break or they widen the page
+   at large text sizes. this is the usual cause of sideways scroll on phones. */
+p, li, dd, h1, h2, h3 { overflow-wrap: break-word; }
+code { overflow-wrap: anywhere; word-break: break-word; font-size: .92em; }
+
+h3 {
+  font-family: var(--display);
+  font-size: 1.42rem; font-weight: 600;
+  letter-spacing: -0.012em;
+  margin: 0 0 .2rem;
+  text-wrap: balance;
+}
+
+.js-on .rv { opacity: 0; transform: translateY(14px); }
+.js-on .rv.in {
+  opacity: 1; transform: none;
+  transition: opacity .62s var(--ease), transform .62s var(--ease);
+}
+.no-anim .rv, .no-anim .rv.in { opacity: 1; transform: none; transition: none; }
+
+/* project cards */
+.project {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: clamp(14px, 3vw, 1.5rem);
+  margin-bottom: 1.1rem;
+  overflow: hidden;
+  transition: border-color .3s var(--ease), box-shadow .3s var(--ease), transform .3s var(--ease);
+}
+.project::before {
+  content: "";
+  position: absolute; top: 0; left: 0;
+  height: 2px; width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .5s var(--ease);
+}
+.project:hover {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--rule));
+  box-shadow: 0 10px 30px -14px var(--glow);
+  transform: translateY(-2px);
+}
+.project:hover::before { transform: scaleX(1); }
+.no-anim .project, .no-anim .project:hover { transform: none; transition: none; }
+
+.stack { display: flex; flex-wrap: wrap; gap: .32rem; margin: .55rem 0 1rem; padding: 0; list-style: none; }
+.stack li {
+  font-family: var(--mono); font-size: .7rem;
+  color: var(--muted);
+  border: 1px solid var(--rule); border-radius: 100px;
+  padding: .16rem .55rem;
+  transition: color .25s var(--ease), border-color .25s var(--ease);
+}
+.project:hover .stack li { color: var(--ink); border-color: color-mix(in srgb, var(--accent) 30%, var(--rule)); }
+
+.notes { margin: 0; padding: 0; list-style: none; display: grid; gap: .65rem; max-width: var(--measure); }
+.notes li { position: relative; padding-left: clamp(12px, 1.05rem, 18px); }
+.notes li::before {
+  content: ""; position: absolute; left: 0; top: .62em;
+  width: .42rem; height: 1px; background: var(--accent);
+}
+
+/* "more" disclosure. short bullets up front, detail on demand. */
+.more { margin-top: .85rem; }
+.more-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-family: var(--mono); font-size: .71rem;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--rule); border-radius: 100px;
+  padding: .35rem .75rem; cursor: pointer;
+  transition: color .2s var(--ease), border-color .2s var(--ease);
+}
+.more-btn:hover { color: var(--accent); border-color: var(--accent); }
+.more-btn .chev {
+  width: .62rem; height: .62rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform .3s var(--ease);
+}
+.more-btn[aria-expanded="true"] .chev { transform: rotate(-135deg) translate(-1px, -1px); }
+
+/* 0fr to 1fr animates height without hardcoding one */
+.more-wrap {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows .36s var(--ease), opacity .3s var(--ease);
+  opacity: 0;
+}
+.more-wrap.open { grid-template-rows: 1fr; opacity: 1; }
+.more-body { overflow: hidden; }
+.more-body > * { margin-top: .85rem; }
+.no-anim .more-wrap { transition: none; }
+
+/* no JS: no button, detail just shows */
+:root:not(.js-on) .more-btn { display: none; }
+:root:not(.js-on) .more-wrap { grid-template-rows: 1fr; opacity: 1; }
+
+.more-body .notes li::before { background: var(--accent2); }
+
+/* skills */
+.skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr)); gap: 1.2rem 1.8rem; margin: 0; }
+.skills dt {
+  font-family: var(--mono); font-size: .72rem;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent2); margin-bottom: .45rem;
+}
+.skills dd { margin: 0; display: flex; flex-wrap: wrap; gap: .3rem; }
+.skills dd span {
+  font-size: .82rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  padding: .18rem .5rem;
+  transition: border-color .22s var(--ease), color .22s var(--ease), transform .22s var(--ease);
+}
+.skills dd span:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+.no-anim .skills dd span:hover { transform: none; }
+
+/* coursework */
+.courses {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr));
+  gap: 0 1.6rem; margin: 0 0 1.3rem; padding: 0; list-style: none; font-size: .91rem;
+}
+.courses li { display: flex; gap: .6rem; align-items: baseline; padding: .32rem 0; border-bottom: 1px solid var(--rule); }
+.courses .code {
+  font-family: var(--mono); font-size: .76rem;
+  color: var(--accent); white-space: nowrap;
+  font-variant-numeric: tabular-nums; min-width: clamp(58px, 5.4rem, 92px);
+}
+.courses.live .code { color: var(--accent2); }
+
+.subhead {
+  font-family: var(--mono); font-size: .73rem;
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--muted); margin: 1.5rem 0 .55rem;
+  display: flex; align-items: center; gap: .5rem;
+}
+.subhead:first-child { margin-top: 0; }
+
+.pulse { width: .45rem; height: .45rem; border-radius: 50%; background: var(--accent2); }
+.js-on:not(.no-anim) .pulse { animation: pulse 2.2s ease-out infinite; }
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent2) 55%, transparent); }
+  70%  { box-shadow: 0 0 0 .5rem transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.role-meta {
+  font-family: var(--mono); font-size: .77rem;
+  color: var(--muted); margin: 0 0 .9rem;
+  font-variant-numeric: tabular-nums;
+}
+.school { margin-bottom: 1.8rem; }
+.school:last-of-type { margin-bottom: 0; }
+
+/* contact details + form */
+.details { margin: 0 0 1.8rem; display: grid; gap: .1rem; }
+.details div {
+  display: grid; gap: .1rem 1rem;
+  padding: .6rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+@media (min-width: 520px) { .details div { grid-template-columns: 7rem 1fr; align-items: baseline; } }
+.details dt {
+  font-family: var(--mono); font-size: .71rem;
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--muted);
+}
+.details dd { margin: 0; font-size: .95rem; }
+/* every item gets the same box, so text baselines line up whether or not the
+   item is a link. the min-height is the 24px tap target, not decoration. */
+/* 28px, not 1.75rem: the 24px target rule is an absolute number, and in rem it
+   inflated with the text-size setting and ate the viewport at 150%. */
+.contact-line li, footer p { display: flex; align-items: center; min-height: 28px; }
+.contact-line a, footer a { display: inline-flex; align-items: center; min-height: 28px; }
+.details dd a { display: inline-flex; align-items: center; min-height: 28px; }
+footer p { flex-wrap: wrap; gap: 0 .35rem; }
+.details dd .sub { display: block; font-size: .8rem; color: var(--muted); margin-top: .1rem; }
+
+form { max-width: 34rem; }
+.field { margin-bottom: 1rem; }
+.field label {
+  display: block; font-size: .85rem; font-weight: 500;
+  padding: .2rem 0; margin-bottom: .15rem;   /* 24px tall for thumbs */
+}
+input, textarea {
+  width: 100%;
+  font-family: inherit;
+  /* never below 16px: iOS zooms the whole page when you focus a smaller field */
+  font-size: max(16px, .95rem);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  padding: .6rem .75rem;
+  transition: border-color .2s var(--ease);
+}
+input:hover, textarea:hover { border-color: var(--muted); }
+input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--down); border-width: 2px; }
+textarea { resize: vertical; min-height: 7.5rem; }
+
+.err {
+  display: block; font-size: .8rem;
+  color: var(--down); margin-top: .3rem;
+  font-weight: 500;
+}
+.err:empty { display: none; }
+.err::before { content: "\26A0\FE0E  "; }
+
+.actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-top: 1.1rem; }
+.btn {
+  font-family: var(--body); font-size: .9rem; font-weight: 500;
+  background: var(--accent);
+  color: var(--paper);
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  padding: .6rem 1.2rem;
+  cursor: pointer;
+  transition: filter .2s var(--ease), transform .2s var(--ease);
+}
+.btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.no-anim .btn:hover { transform: none; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn[hidden] { display: none; }
+
+.status {
+  margin-top: .9rem; font-size: .87rem;
+  border-left: 3px solid var(--accent);
+  padding: .55rem .8rem;
+  background: var(--surface);
+  border-radius: 0 6px 6px 0;
+}
+.status:empty { display: none; }
+.status a { font-weight: 500; }
+
+/* footer */
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 2.6rem; padding: 1.5rem 0 3rem;
+  font-family: var(--mono); font-size: .77rem; color: var(--muted);
+}
+footer p { margin: 0; max-width: none; }
+
+/* the panel's Reduce has to kill css motion too, not just the js chart. and the
+   os preference must not win when the reader has explicitly asked for Full. */
+:root[data-motion="reduce"] { scroll-behavior: auto; }
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: .001ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+  transition-delay: 0s !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) { scroll-behavior: auto; }
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
+    animation-duration: .001ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  transition-delay: 0s !important;
+  }
+}
+</style>
+</head>
+<body>
+<!--
+  hello. if you opened this, here is what is actually going on in the page.
+
+  no framework, no build step, no dependencies. one file, written by hand.
+
+  the chart is time based, not frame based. stepping once per animation frame
+  looks correct on a 60hz panel and runs at double speed on a 120hz phone. that
+  is a bug you cannot find on hardware you own, only by not trusting the frame.
+
+  every colour here was measured, not picked. okabe-ito is the standard advice
+  for colour blind safe palettes, but its orange is 2.12:1 on white, which fails
+  wcag AA for text. the values below are darkened until they clear 4.5:1 with the
+  hue separation kept.
+
+  the chart never paints behind the text. a peak crossing the tagline dropped it
+  to 3.7:1. the cut line is measured off the real text block and remeasured when
+  the webfonts land, because a layout number taken once is a layout number that
+  is already wrong.
+
+  the 24px tap target minimum is an absolute number. written in rem it grows with
+  the text size setting and eats the viewport at 150%. same for padding, gaps and
+  the photo: raising the text size should raise the text, not the whitespace.
+
+  state is in aria-pressed and aria-expanded, not in a class name, so the control
+  and the assistive tree cannot disagree with each other.
+
+  shawnrao@umich.edu
+-->
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ===== SECTION: masthead. name, tagline, photo ===== -->
+<div class="hero">
+  <canvas id="tape" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <header class="masthead">
+      <div class="mh-text">
+        <h1><span class="w">Shawn</span><span class="w">Rao</span></h1>
+        <div class="accent-rule"></div>
+        <p class="standfirst">I study <span class="fx fx-glitch">Data Science</span> at Michigan Engineering. I <span class="fx fx-build">build</span> data <span class="fx fx-flow">pipelines</span>, performance-sensitive systems, and the interfaces that <span class="fx fx-settle">sit on top</span> of them.</p>
+        <ul class="contact-line">
+          <li><a href="mailto:shawnrao@umich.edu">shawnrao@umich.edu</a></li>
+          <li>Ypsilanti, Michigan</li>
+          <li>B.S.E. expected December 2027</li>
+        </ul>
+      </div>
+      <button type="button" class="vol" id="vol" aria-pressed="false" aria-describedby="vol-desc">
+        <span class="dot" aria-hidden="true"></span><span id="vol-label">Calm: my backlog once the coffee lands</span>
+      </button>
+      <span class="vh" id="vol-desc">Switches the chart behind this header between a calm and a volatile price simulation.</span>
+      <figure class="portrait rv">
+        <img src="shawn.jpg"
+             alt="Shawn Rao, head and shoulders, a young man with dark hair and a trimmed moustache, smiling slightly at the camera. He is wearing a navy three-piece suit over an open-collar white shirt, with a small gold bird pin on the lapel, against a plain dark grey studio background."
+             width="900" height="1125" decoding="async">
+      </figure>
+    </header>
+  </div>
+</div>
+
+<!-- ===== SECTION: nav rail. add a link here for each new section ===== -->
+<div class="rail">
+  <div class="rail-inner">
+    <button type="button" class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="rail-nav">
+      <span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="menu-label" id="menu-label">Menu</span>
+    </button>
+    <nav id="rail-nav" aria-label="Sections">
+      <a href="#currently">Currently</a>
+      <a href="#work">Work</a>
+      <a href="#education">Education</a>
+      <a href="#technical">Technical</a>
+      <a href="#career">Career</a>
+      <a href="#contact">Contact</a>
+      <a href="games.html" data-external>Co-op Finder</a>
+      <a href="resume.html" data-external>Resume</a>
+      <span id="indicator" aria-hidden="true"></span>
+    </nav>
+    <button type="button" class="a11y-btn" id="a11y-open" aria-expanded="false" aria-controls="a11y-panel">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm9 5.5c0 .6-.4 1-1 1l-5 .6v4.2l1.9 6.4a1 1 0 0 1-1.9.6L13.2 15h-2.4l-1.8 5.3a1 1 0 1 1-1.9-.6L9 13.3V9.1l-5-.6a1 1 0 0 1 .1-2L12 7.2l7.9-.7c.6 0 1.1.4 1.1 1Z"/></svg>
+      <span class="lbl">Accessibility</span>
+    </button>
+  </div>
+</div>
+
+<!-- ===== SECTION: accessibility panel ===== -->
+<div class="scrim" id="scrim" hidden></div>
+
+<aside class="panel" id="a11y-panel" role="dialog" aria-modal="true" aria-labelledby="a11y-title" hidden>
+  <div class="panel-head">
+    <div>
+      <h2 id="a11y-title">Accessibility</h2>
+      <p class="lede">These settings apply to this site and are remembered in your browser. They do not change anything anywhere else.</p>
+    </div>
+    <button type="button" class="close" id="a11y-close" aria-label="Close accessibility settings">&times;</button>
+  </div>
+
+  <fieldset>
+    <legend>Theme</legend>
+    <div class="opts">
+      <label><input type="radio" name="theme" value="system" checked><span>System</span></label>
+      <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+      <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Motion</legend>
+    <div class="opts">
+      <label><input type="radio" name="motion" value="system" checked><span>System</span></label>
+      <label><input type="radio" name="motion" value="reduce"><span>Reduce</span></label>
+      <label><input type="radio" name="motion" value="full"><span>Full</span></label>
+    </div>
+    <p class="lede" style="margin:.5rem 0 0">Reduce stops the animated chart, the scroll reveals and the counters. Use it if movement on screen makes you queasy. Full turns them back on even if your system asks for less motion.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Colour vision</legend>
+    <div class="opts">
+      <label><input type="radio" name="cvd" value="off" checked><span>Default</span></label>
+      <label><input type="radio" name="cvd" value="rg"><span>Red / green safe</span></label>
+      <label><input type="radio" name="cvd" value="by"><span>Blue / yellow safe</span></label>
+    </div>
+    <p class="lede" style="margin:.5rem 0 0">Swaps in palettes whose hues stay distinct under deuteranopia, protanopia and tritanopia.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Contrast</legend>
+    <div class="opts">
+      <label><input type="radio" name="contrast" value="normal" checked><span>Standard</span></label>
+      <label><input type="radio" name="contrast" value="high"><span>High</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Text size</legend>
+    <div class="opts">
+      <label><input type="radio" name="scale" value="1" checked><span>100%</span></label>
+      <label><input type="radio" name="scale" value="1.125"><span>112%</span></label>
+      <label><input type="radio" name="scale" value="1.25"><span>125%</span></label>
+      <label><input type="radio" name="scale" value="1.5"><span>150%</span></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Links</legend>
+    <div class="opts">
+      <label><input type="radio" name="underline" value="off" checked><span>Default</span></label>
+      <label><input type="radio" name="underline" value="on"><span>Always underline</span></label>
+    </div>
+  </fieldset>
+
+  <button type="button" class="reset" id="a11y-reset">Reset to defaults</button>
+</aside>
+
+<main class="wrap" id="main">
+
+  <!-- ===== SECTION: currently ===== -->
+  <section id="currently" aria-labelledby="l-currently">
+    <div class="sec-head">
+      <h2 class="sec-label" id="l-currently">Currently</h2>
+      <svg class="sec-mark" data-mark="currently" viewBox="0 0 60 60" aria-hidden="true" focusable="false"><path class="s trend" d="M4 40 L14 30 L22 36 L32 18 L42 28 L52 12"/><circle class="f tip" cx="52" cy="12" r="3"/><path class="s dim" d="M4 50 H56"/></svg>
+    </div>
+    <div class="sec-body rv">
+      <p>Pursuing a B.S.E. in Data Science at Michigan Engineering, graduating December 2027, and looking for a summer 2027 internship.</p>
+      <p>I write C++ where performance decides whether something finishes, Python and R for data work, and JavaScript for anything people have to look at.</p>
+      <p>Courses I’m currently taking: statistical computing in R, probability and statistics, and Unix tooling.</p>
+    </div>
+  </section>
+
+  <!-- ===== SECTION: work. copy an <article class="project"> to add one ===== -->
+  <section id="work" aria-labelledby="l-work">
+    <div class="sec-head">
+      <h2 class="sec-label" id="l-work">Work</h2>
+      <svg class="sec-mark" data-mark="work" viewBox="0 0 60 60" aria-hidden="true" focusable="false"><rect class="s dim" x="10" y="8" width="38" height="26" rx="4"/><rect class="s" x="6" y="18" width="38" height="26" rx="4"/><path class="s2 caret" d="M14 28 l5 4 l-5 4"/><path class="s2 cmd" d="M23 36 h19"/></svg>
+    </div>
+    <div class="sec-body">
+
+      <article class="project rv">
+        <h3>Long-Distance Co-op</h3>
+        <ul class="stack"><li>Python</li><li>pandas</li><li>SQL</li><li>SQLite</li><li>R</li><li>JavaScript</li></ul>
+        <ul class="notes">
+          <li>My friends are spread across different cities now, so most of what Steam calls co-op is useless to us. This finds what we can actually play together. <a href="games.html">Open it</a>.</li>
+          <li>It separates online co-op from split-screen and LAN, and surfaces Remote Play Together, where one person owns the game and streams it to everyone else.</li>
+          <li>I rank on the lower bound of a Wilson interval, so five perfect reviews do not outrank forty thousand good ones.</li>
+        </ul>
+        <div class="more">
+          <button type="button" class="more-btn" aria-expanded="false" aria-controls="d5">
+            <span class="chev" aria-hidden="true"></span>How it works<span class="vh">: Long-Distance Co-op</span>
+          </button>
+          <div class="more-wrap" id="d5">
+            <div class="more-body">
+              <ul class="notes">
+                <li>A Python pipeline I wrote reads six CSVs, about 2.9 million rows, and emits one 260KB file. Everything after that runs in your browser.</li>
+                <li>Cleaning it took longer than building it. pandas dropped 54% of one file to a quoting bug and never raised an error. Playtime came back zero across all 140,077 rows, so I cut that feature. And the genre table stores Counter-Strike in Polish and Dota in Russian, which meant my English filter was quietly deleting the biggest games on Steam.</li>
+                <li>For recommendations I use cosine similarity over tag vectors, weighted by how rare each tag is. Skip the weighting and everything matches on Action and Indie.</li>
+                <li>Terraria returns Starbound. Hades returns Hades II and Binding of Isaac.</li>
+                <li>I also loaded the same six CSVs into SQLite and asked the questions in SQL. Recursive CTEs to split the genre lists, a window function for the rolling average, and Wilson registered as a user-defined function so the ranking happens in the query.</li>
+                <li>Two findings I did not expect. Price peaks at $10 to $20 and falls off above $40. Games shipping in more than fifteen languages average 81.3% against 76.2% for English-only.</li>
+                <li>Then I refit both in R to see whether they survived. The localisation gap shrinks 73% once review count is in the model, because publishers localise games that already sold. The price effect is significant at F = 45.8 and explains 1% of the variance.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="project rv">
+        <h3>Order-Matching Engine</h3>
+        <ul class="stack"><li>C++</li><li>STL</li><li>custom priority queue</li></ul>
+        <ul class="notes">
+          <li>I wrote a C++ engine that matches buy and sell orders the way an exchange does, on price first and then time.</li>
+          <li>It reports a running median price and per-trader totals without ever reading the input twice.</li>
+          <li>My first version never finished the largest test cases. Writing my own priority queue fixed it.</li>
+        </ul>
+        <div class="more">
+          <button type="button" class="more-btn" aria-expanded="false" aria-controls="d1">
+            <span class="chev" aria-hidden="true"></span>How it works<span class="vh">: Order-Matching Engine</span>
+          </button>
+          <div class="more-wrap" id="d1">
+            <div class="more-body">
+              <ul class="notes">
+              <li>I give each equity two heaps, buys in a max-heap and sells in a min-heap, so adding an order and finding its match are both logarithmic rather than linear in the size of the book.</li>
+              <li>The median and the per-trader numbers fall out of that same pass.</li>
+              <li>I profiled before optimising. The matching loop was eating almost everything, so that is where the work went. Reserving capacity up front handled the remainder.</li>
+              <li>Source stays private under course policy. I can walk through the design.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="project rv">
+        <h3>Conversational Search Interface</h3>
+        <ul class="stack"><li>JavaScript</li><li>HTML5</li><li>CSS Grid</li><li>Flexbox</li><li>Python</li><li>LangChain</li><li>OpenAI API</li></ul>
+        <ul class="notes">
+          <li>Plain JavaScript front end, no framework. I wanted to know what a framework was doing for me first.</li>
+          <li>I stream answers in through direct DOM updates instead of re-rendering, so the view holds still while text is arriving.</li>
+          <li>Behind it sits a Python retrieval layer. Every answer comes back carrying the sources it came from.</li>
+        </ul>
+        <div class="more">
+          <button type="button" class="more-btn" aria-expanded="false" aria-controls="d2">
+            <span class="chev" aria-hidden="true"></span>How it works<span class="vh">: Conversational Search Interface</span>
+          </button>
+          <div class="more-wrap" id="d2">
+            <div class="more-body">
+              <ul class="notes">
+              <li>Grid holds the page frame, Flexbox runs the message column, and media queries carry it from about 360px up.</li>
+              <li>The loading, empty and error states took me longer than the happy path did.</li>
+              <li>Early versions answered confidently from sources that did not support the answer. I hand-labeled a test set and tuned chunk size and retrieval depth against it.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+            <article class="project rv">
+        <h3>Shell tooling and Git automation</h3>
+        <ul class="stack"><li>C</li><li>Bash</li><li>Zsh</li><li>Git hooks</li><li>sed</li><li>POSIX regex</li></ul>
+        <ul class="notes">
+          <li>I wrote a working Unix shell in C, and a pair of Git hooks that stop me committing things I should not.</li>
+          <li>The pre-commit hook scans staged files for SSH private keys and hard-coded API keys and refuses the commit.</li>
+          <li>Built for EECS 201. I am not publishing the code, since it is coursework other students are still assigned.</li>
+        </ul>
+        <div class="more">
+          <button type="button" class="more-btn" aria-expanded="false" aria-controls="d6">
+            <span class="chev" aria-hidden="true"></span>How it works<span class="vh">: Shell tooling and Git automation</span>
+          </button>
+          <div class="more-wrap" id="d6">
+            <div class="more-body">
+              <ul class="notes">
+                <li>The shell forks, execs with execvp and waits on the child, handles cd and exit itself because a child process cannot change its parent's directory, and builds its prompt from the environment and the working directory.</li>
+                <li>The pre-commit hook walks the staged file list, matches the OPENSSH markers and a pattern for assigned key literals, and exits non-zero. The commit-msg hook spell-checks through aspell but never blocks a commit, because a spell check should not be able to stop you working.</li>
+                <li>I also wrote a two-line prompt for both zsh and bash that reads branch, dirty files, untracked files, how far ahead or behind the remote, and stash depth, plus the runtime of the last command once it passes two seconds, its exit code if it failed, and a tag when the session is over SSH.</li>
+                <li>Timing that command is the awkward part. Zsh gives you preexec and precmd hooks; bash has neither, so it takes a guarded DEBUG trap and the SECONDS counter to get the same number.</li>
+                <li>GNU and BSD sed disagree on in-place editing and on extended regex flags, so a script written on Linux quietly does the wrong thing on macOS unless you check the platform first.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+<article class="project rv">
+        <h3>This site</h3>
+        <ul class="stack"><li>HTML5</li><li>CSS Grid</li><li>Flexbox</li><li>Canvas</li><li>WCAG 2.2</li><li>no dependencies</li></ul>
+        <ul class="notes">
+          <li>I wrote this page by hand. One file, no framework, no build step, nothing to install.</li>
+          <li>Motion, contrast, colour-vision palette and text size are yours to set, in the corner up there.</li>
+          <li>I tested it from a 320px phone up to desktop at every text size.</li>
+        </ul>
+        <div class="more">
+          <button type="button" class="more-btn" aria-expanded="false" aria-controls="d3">
+            <span class="chev" aria-hidden="true"></span>How it works<span class="vh">: This site</span>
+          </button>
+          <div class="more-wrap" id="d3">
+            <div class="more-body">
+              <ul class="notes">
+              <li>The chart behind my name is a canvas random walk, drawn at device pixel ratio. It stops the moment it leaves the screen.</li>
+              <li>I used Okabe-Ito for the colour-vision palettes, a published set that holds up under deuteranopia, protanopia and tritanopia.</li>
+                <li>Nothing here leans on colour alone. The current section carries a bar as well as a colour, errors carry an icon and words, and you can force every link to underline.</li>
+                <li>I ran every colour pair through the WCAG contrast formula across all eight theme combinations. Three failed, one of them inside high-contrast mode. Measuring is the only reason I knew.</li>
+              <li>Skip link, visible focus on everything, labels wired to their inputs, errors announced through a live region, and a settings dialog that traps tab and closes on Escape. I checked the whole page works without a mouse.</li>
+              <li>Testing found four bugs that looking never would. The page scrolled sideways at large text. My inputs were under 16px, which makes iOS zoom in and never zoom back. Some tap targets sat below the 24px minimum. Padding written in rem ate the viewport at 150%.</li>
+              <li>It respects prefers-reduced-motion by default, and the panel overrides that either direction.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===== SECTION: education ===== -->
+  <section id="education" aria-labelledby="l-education">
+    <div class="sec-head">
+      <h2 class="sec-label" id="l-education">Education</h2>
+      <svg class="sec-mark" data-mark="education" viewBox="0 0 60 60" aria-hidden="true" focusable="false"><path class="s cap" d="M4 20 L30 8 L56 20 L30 32 Z"/><path class="s2" d="M14 25 v13 c0 4 32 4 32 0 V25"/><path class="s dim tassel" d="M56 20 v12"/></svg>
+    </div>
+    <div class="sec-body rv">
+      <div class="school">
+        <h3>University of Michigan, College of Engineering</h3>
+        <p class="role-meta">Bachelor of Science in Engineering, Data Science &middot; expected December 2027</p>
+
+        <p class="subhead">Software and web</p>
+        <ul class="courses">
+          <li><span class="code">SI 339</span><span>Web Design, Development &amp; Accessibility</span></li>
+          <li><span class="code">SI 206</span><span>Data-Oriented Programming</span></li>
+          <li><span class="code">EECS 281</span><span>Data Structures &amp; Algorithms</span></li>
+          <li><span class="code">EECS 280</span><span>Programming &amp; Data Structures</span></li>
+          <li><span class="code">EECS 203</span><span>Discrete Mathematics</span></li>
+          <li><span class="code">EECS 376</span><span>Foundations of Computer Science</span></li>
+          <li><span class="code">EECS 496</span><span>Major Design &amp; Professionalism</span></li>
+          <li><span class="code">TCHNCLCM 300</span><span>Technical Communication</span></li>
+        </ul>
+
+        <p class="subhead">Quantitative</p>
+        <ul class="courses">
+          <li><span class="code">ROB 101</span><span>Computational Linear Algebra</span></li>
+          <li><span class="code">MATH 215</span><span>Multivariable &amp; Vector Calculus</span></li>
+          <li><span class="code">STATS 250</span><span>Statistics &amp; Data Analysis</span></li>
+          <li><span class="code">LING 441</span><span>Computational Linguistics</span></li>
+        </ul>
+
+        <p class="subhead"><span class="pulse" aria-hidden="true"></span>In progress, fall 2026</p>
+        <ul class="courses live">
+          <li><span class="code">DATASCI 306</span><span>Statistical Computing in R</span></li>
+          <li><span class="code">STATS 412</span><span>Probability &amp; Statistics</span></li>
+          <li><span class="code">EECS 201</span><span>Unix, Shell and Git</span></li>
+        </ul>
+      </div>
+
+      <div class="school">
+        <h3>Purdue University</h3>
+        <p class="role-meta">Applied Generative AI Specialization &middot; online, 16 weeks &middot; 2025</p>
+        <ul class="notes">
+          <li>I took this alongside coursework: prompt engineering and fine-tuning, retrieval-augmented generation against vector databases, and building agents in Python with LangChain and Hugging Face.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION: technical skills ===== -->
+  <section id="technical" aria-labelledby="l-technical">
+    <div class="sec-head">
+      <h2 class="sec-label" id="l-technical">Technical</h2>
+      <svg class="sec-mark" data-mark="technical" viewBox="0 0 60 60" aria-hidden="true" focusable="false"><circle class="s node n1" cx="12" cy="14" r="4"/><circle class="s node n2" cx="44" cy="10" r="4"/><circle class="s2 hub" cx="28" cy="30" r="5"/><circle class="s node n3" cx="12" cy="46" r="4"/><circle class="s node n4" cx="46" cy="44" r="4"/><path class="s dim links" d="M15 17 L24 27 M41 13 L32 26 M15 43 L24 34 M43 42 L32 33"/></svg>
+    </div>
+    <div class="sec-body rv">
+      <dl class="skills">
+        <div><dt>Languages</dt><dd><span>JavaScript (ES6+)</span><span>C++</span><span>Python</span><span>R</span><span>SQL</span><span>HTML5</span><span>CSS3</span></dd></div>
+        <div><dt>Front end</dt><dd><span>DOM manipulation</span><span>CSS Grid</span><span>Flexbox</span><span>media queries</span><span>responsive layout</span><span>semantic markup</span><span>Canvas</span></dd></div>
+        <div><dt>Accessibility</dt><dd><span>WCAG 2.2</span><span>ARIA</span><span>keyboard navigation</span><span>screen reader testing</span><span>colour contrast</span></dd></div>
+        <div><dt>Learning now</dt><dd><span>React</span><span>Node.js</span></dd></div>
+        <div><dt>Version control</dt><dd><span>Git</span><span>interactive rebase</span><span>git hooks</span><span>reflog recovery</span><span>GitHub</span><span>GitLab</span></dd></div>
+        <div><dt>Systems</dt><dd><span>Linux</span><span>Unix</span><span>Bash</span><span>Zsh</span><span>shell scripting</span><span>process control</span><span>Docker</span><span>AWS</span></dd></div>
+        <div><dt>Text processing</dt><dd><span>grep</span><span>sed</span><span>POSIX regex</span></dd></div>
+        <div><dt>Algorithms</dt><dd><span>heaps and priority queues</span><span>union-find</span><span>Dijkstra</span><span>dynamic programming</span><span>branch and bound</span><span>C++ STL</span></dd></div>
+        <div><dt>Statistics</dt><dd><span>probability distributions</span><span>Central Limit Theorem</span><span>point estimation</span><span>OLS regression</span><span>confounding</span><span>t-tests</span></dd></div>
+        <div><dt>Data</dt><dd><span>Pandas</span><span>NumPy</span><span>tidyverse</span><span>Quarto</span><span>JMP</span><span>LangChain</span><span>OpenAI API</span></dd></div>
+        <div><dt>Testing</dt><dd><span>differential testing</span><span>mutation testing</span><span>Valgrind</span><span>strict-flag builds</span></dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ===== SECTION: career ===== -->
+  <section id="career" aria-labelledby="l-career">
+    <div class="sec-head">
+      <h2 class="sec-label" id="l-career">Career</h2>
+      <svg class="sec-mark" data-mark="career" viewBox="0 0 60 60" aria-hidden="true" focusable="false"><rect class="s row r1" x="8" y="10" width="44" height="12" rx="3"/><rect class="s row r2" x="8" y="26" width="44" height="12" rx="3"/><rect class="s dim row r3" x="8" y="42" width="44" height="12" rx="3"/><circle class="f2" cx="15" cy="16" r="2"/><circle class="f2" cx="15" cy="32" r="2"/><circle class="f dim" cx="15" cy="48" r="2"/><path class="s dim" d="M38 16 h8 M38 32 h8"/></svg>
+    </div>
+    <div class="sec-body rv">
+      <article class="project">
+        <h3>Computer Hardware Technician</h3>
+        <p class="role-meta">University of Michigan College of Engineering (CAEN) &middot; 04/2023 &ndash; 04/2026</p>
+        <div class="stats in-role">
+        <div class="stat"><b data-to="200" data-suffix="+">200+</b><span>workstations and servers supported</span></div>
+        <div class="stat"><b data-to="99" data-suffix="%+">99%+</b><span>uptime held across the fleet</span></div>
+        <div class="stat"><b data-to="500" data-suffix="+">500+</b><span>students and faculty served</span></div>
+        <div class="stat"><b data-to="3" data-suffix="">3</b><span>years on the CAEN labs team</span></div>
+        <div class="stat"><b data-to="25" data-suffix="%">25%</b><span>reduction in hardware downtime</span></div>
+        <div class="stat"><b data-to="40" data-suffix="%">40%</b><span>faster shared-workflow setup</span></div>
+        </div>
+        <ul class="notes">
+          <li>I looked after the Linux, Windows and macOS machines across the engineering labs.</li>
+          <li>I helped run a CrowdStrike rollout to the full fleet without taking anything offline.</li>
+        </ul>
+        <div class="more">
+          <button type="button" class="more-btn" aria-expanded="false" aria-controls="d4">
+            <span class="chev" aria-hidden="true"></span>What it taught me<span class="vh">: Computer Hardware Technician</span>
+          </button>
+          <div class="more-wrap" id="d4">
+            <div class="more-body">
+              <ul class="notes">
+                <li>Debugging with someone waiting over your shoulder is a different skill from debugging alone. You rule things out in order, and you say what you are doing while you do it.</li>
+                <li>Most of that 25% came from tracking which failures kept recurring instead of treating each one as new.</li>
+                <li>I worked with faculty to bring three new technologies into the shared lab workflow. Setup time dropped about 40%.</li>
+                <li>Not a software job. It is where I learned to write the fix down.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="project">
+        <h3>Information Technology Summer Intern</h3>
+        <p class="role-meta">NYX Inc., Livonia, Michigan &middot; 04/2021 &ndash; 07/2021</p>
+        <ul class="notes">
+          <li>My first job in IT. I configured employee workstations and got them talking to the company servers.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===== SECTION: contact. details + form ===== -->
+  <section id="contact" aria-labelledby="l-contact">
+    <div class="sec-head">
+      <h2 class="sec-label" id="l-contact">Contact</h2>
+      <svg class="sec-mark" data-mark="contact" viewBox="0 0 60 60" aria-hidden="true" focusable="false"><circle class="f src" cx="16" cy="32" r="3.5"/><path class="s wave w1" d="M26 22 a14 14 0 0 1 0 20"/><path class="s2 wave w2" d="M34 15 a24 24 0 0 1 0 34"/><path class="s dim wave w3" d="M42 8 a34 34 0 0 1 0 48"/></svg>
+    </div>
+    <div class="sec-body rv">
+
+      <dl class="details">
+        <div>
+          <dt>Email</dt>
+          <dd><a href="mailto:shawnrao@umich.edu">shawnrao@umich.edu</a></dd>
+        </div>
+        <div>
+          <dt>Phone</dt>
+          <dd><a href="tel:+17342728732">734-272-8732</a></dd>
+        </div>
+        <div>
+          <dt>Location</dt>
+          <dd>Ypsilanti, Michigan<span class="sub">Ann Arbor area. Open to relocating for summer 2027.</span></dd>
+        </div>
+        <div>
+          <dt>Resume</dt>
+          <dd><a href="resume.html">View resume</a>
+            <span class="sub">Opens as a page. <a href="Shawn_Rao_Resume.pdf">Download the PDF</a> instead.</span></dd>
+        </div>
+        <div>
+          <dt>Availability</dt>
+          <dd>Summer 2027 internships<span class="sub">Graduating December 2027.</span></dd>
+        </div>
+        <!-- Add profile links here when you are ready, e.g.
+        <div>
+          <dt>LinkedIn</dt>
+          <dd><a href="https://www.linkedin.com/in/YOUR-HANDLE">linkedin.com/in/YOUR-HANDLE</a></dd>
+        </div>
+        <div>
+          <dt>GitHub</dt>
+          <dd><a href="https://github.com/YOUR-HANDLE">github.com/YOUR-HANDLE</a></dd>
+        </div>
+        -->
+      </dl>
+
+      <h3>Send a message</h3>
+      <form id="contact-form" novalidate>
+        <div class="field">
+          <label for="f-name">Your name</label>
+          <input type="text" id="f-name" name="name" autocomplete="name" required
+                 aria-describedby="e-name">
+          <span class="err" id="e-name" role="alert"></span>
+        </div>
+        <div class="field">
+          <label for="f-email">Your email</label>
+          <input type="email" id="f-email" name="email" autocomplete="email" required
+                 aria-describedby="e-email">
+          <span class="err" id="e-email" role="alert"></span>
+        </div>
+        <div class="field">
+          <label for="f-msg">Message</label>
+          <textarea id="f-msg" name="message" required aria-describedby="e-msg"></textarea>
+          <span class="err" id="e-msg" role="alert"></span>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn">Send message</button>
+          <button type="button" class="btn ghost" id="copy-btn" hidden>Copy message</button>
+        </div>
+        <p class="status" id="form-status" role="status" aria-live="polite"></p>
+      </form>
+
+    </div>
+  </section>
+
+  <footer>
+    <p>Shawn Rao &middot; <a href="mailto:shawnrao@umich.edu">shawnrao@umich.edu</a> &middot; Ypsilanti, Michigan</p>
+  </footer>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- CONFIG. everything you'd want to change is in this block ----
+
+  // Email delivery. A static page has no server, so it cannot send mail by
+  // itself. A form service relays it; the endpoint goes here.
+  //   Formspree  https://formspree.io     ->  "https://formspree.io/f/xxxxxxx"
+  //   Web3Forms  https://web3forms.com    ->  "https://api.web3forms.com/submit"
+  // Empty falls back to copy + mailto, which always works.
+  var FORM_ENDPOINT = "";
+
+  // Every message gets this subject line. Gmail filters on it, so keep the
+  // bracketed tag exactly as it is in both places or the filter stops matching.
+  var SUBJECT_TAG = "[site] New message from your website";
+
+  // Extra fields posted with every submission.
+  // Web3Forms needs an access_key here. Formspree needs none.
+  // _subject is Formspree's key for the subject line, subject is Web3Forms'.
+  // Sending both means the tag lands whichever service you end up using.
+  var FORM_FIELDS = {
+    // access_key: "paste-your-web3forms-key-here"
+    _subject: SUBJECT_TAG,
+    subject: SUBJECT_TAG
+  };
+
+  // Where the fallback mailto sends. Keep in sync with the contact section.
+  var MY_EMAIL = "shawnrao@umich.edu";
+
+  // localStorage key for the accessibility settings.
+  var PREF_KEY = "sr-a11y";
+
+  // ------------------------------------------------------------------
+
+  var root = document.documentElement;
+  root.classList.add("js-on");
+
+  // ---- accessibility settings ----
+  // Applied as data-* on <html>. CSS does the rest, see the theme blocks.
+  var defaults = { theme: "system", motion: "system", cvd: "off", contrast: "normal", scale: "1", underline: "off" };
+  var prefs = Object.assign({}, defaults);
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(PREF_KEY);
+      if (raw) {
+        var saved = JSON.parse(raw);
+        Object.keys(defaults).forEach(function (k) {
+          if (typeof saved[k] === "string") prefs[k] = saved[k];
+        });
+      }
+    } catch (e) { /* storage off or full. defaults are fine */ }
+  }
+
+  function save() {
+    try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) { /* ignore */ }
+  }
+
+  function systemReduced() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function reduced() {
+    return prefs.motion === "reduce" || (prefs.motion === "system" && systemReduced());
+  }
+
+  // set the attribute, or drop it when the value is the default
+  function setAttr(name, value, off) {
+    if (value === off) {
+      root.removeAttribute(name);
+    } else {
+      root.setAttribute(name, value);
+    }
+  }
+
+  function apply() {
+    setAttr("data-theme", prefs.theme, "system");
+    setAttr("data-cvd", prefs.cvd, "off");
+    setAttr("data-contrast", prefs.contrast === "high" ? "high" : "normal", "normal");
+    setAttr("data-underline", prefs.underline, "off");
+    root.setAttribute("data-motion", reduced() ? "reduce" : "full");
+    root.style.setProperty("--scale", prefs.scale);
+    root.classList.toggle("no-anim", reduced());
+    if (reduced()) {
+      stopTape();
+      revealAll();
+      fillCounters();
+    } else {
+      startTape();
+    }
+  }
+
+  function syncInputs() {
+    Object.keys(prefs).forEach(function (k) {
+      var el = document.querySelector('input[name="' + k + '"][value="' + prefs[k] + '"]');
+      if (el) el.checked = true;
+    });
+  }
+
+  load();
+
+  document.querySelectorAll('.panel input[type="radio"]').forEach(function (r) {
+    r.addEventListener("change", function () {
+      if (r.checked) { prefs[r.name] = r.value; save(); apply(); }
+    });
+  });
+
+  var resetBtn = document.getElementById("a11y-reset");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", function () {
+      prefs = Object.assign({}, defaults);
+      save(); syncInputs(); apply();
+      resetBtn.textContent = "Reset";
+      setTimeout(function () { resetBtn.textContent = "Reset to defaults"; }, 1200);
+    });
+  }
+
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    (mq.addEventListener ? mq.addEventListener.bind(mq, "change") : mq.addListener.bind(mq))(function () {
+      if (prefs.motion === "system") apply();
+    });
+  }
+
+  // ---- panel. opens as a modal dialog, traps tab, closes on Esc ----
+  var panel = document.getElementById("a11y-panel");
+  var scrim = document.getElementById("scrim");
+  var openBtn = document.getElementById("a11y-open");
+  var closeBtn = document.getElementById("a11y-close");
+  var lastFocus = null;
+
+  function focusables() {
+    return [].slice.call(panel.querySelectorAll('button, input, [href], [tabindex]:not([tabindex="-1"])'))
+             .filter(function (el) { return el.offsetParent !== null || el.type === "radio"; });
+  }
+
+  function openPanel() {
+    lastFocus = document.activeElement;
+    panel.hidden = false; scrim.hidden = false;
+    requestAnimationFrame(function () {
+      panel.classList.add("open"); scrim.classList.add("open");
+    });
+    openBtn.setAttribute("aria-expanded", "true");
+    closeBtn.focus();
+    document.addEventListener("keydown", onKey, true);
+  }
+
+  function hidePanel() {
+    panel.hidden = true;
+    scrim.hidden = true;
+  }
+
+  function closePanel() {
+    panel.classList.remove("open"); scrim.classList.remove("open");
+    openBtn.setAttribute("aria-expanded", "false");
+    document.removeEventListener("keydown", onKey, true);
+    if (reduced()) { hidePanel(); } else { setTimeout(hidePanel, 320); }
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function onKey(e) {
+    if (e.key === "Escape") { e.preventDefault(); closePanel(); return; }
+    if (e.key !== "Tab") return;
+    var f = focusables();
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  if (openBtn) openBtn.addEventListener("click", openPanel);
+  if (closeBtn) closeBtn.addEventListener("click", closePanel);
+  if (scrim) scrim.addEventListener("click", closePanel);
+
+  // ---- price tape. random walk on canvas, paused when offscreen ----
+  var cv = document.getElementById("tape");
+  var ctx = cv && cv.getContext ? cv.getContext("2d") : null;
+  var pts = [], W = 0, H = 0, dpr = 1, raf = 0, onScreen = true, anchor = null;
+  var lastT = 0, carry = 0, stressed = false;
+  var STEP_MS = 1000 / 24;   // one new price point per 1/60s, whatever the
+                             // display does. rAF runs at the refresh rate, and
+                             // browsers throttle it near 60 when idle then jump
+                             // to full rate on interaction, so stepping once per
+                             // frame makes the tape visibly speed up after a
+                             // click on a 120Hz or 144Hz screen.
+
+  function css(n) { return getComputedStyle(root).getPropertyValue(n).trim(); }
+
+  // put the top of the chart band just under the masthead text. measured, not
+  // guessed, so it survives a narrow phone and 150% text alike.
+  var cutF = .52;    // fraction of the hero the mask hides, kept for draw()
+  var room = 1e4;    // px from the top of the band down to the bottom of the screen
+
+  function cut() {
+    var t = document.querySelector(".mh-text"), h = document.querySelector(".hero");
+    if (!t || !h || !h.offsetHeight) return;
+    var tb = t.getBoundingClientRect(), hb = h.getBoundingClientRect();
+    var f = (tb.bottom - hb.top + 10) / hb.height;
+    cutF = Math.min(.9, Math.max(.18, f));
+    h.style.setProperty("--tape-top", (cutF * 100).toFixed(2) + "%");
+
+    // on a tall hero the band runs off the bottom of the screen. this is how
+    // much of it a reader can actually see, and the chart is sized to fit it.
+    room = (window.innerHeight || hb.height) - (hb.top + hb.height * cutF);
+    h.style.setProperty("--tape-fade-px",
+      Math.round(Math.max(7, Math.min(26, room * .2))) + "px");
+  }
+
+  function size() {
+    if (!ctx) return;
+    cut();
+    var r = cv.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(1, Math.round(r.width));
+    H = Math.max(1, Math.round(r.height));
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.max(40, Math.round(W / 7));
+    while (pts.length < n) pts.push({ v: pts.length ? pts[pts.length - 1].v : 0.5, s: stressed });
+    while (pts.length > n) pts.shift();
+  }
+
+  // Calm: small moves, steady pull back toward the middle.
+  // Stressed: roughly triple the move size, weaker pull, and a 4% chance each
+  // step of a jump several times larger than normal. Real returns are not
+  // gaussian, they have fat tails, and a stressed market is mostly those tails.
+  // calm and volatile now differ in DRIFT, not just in wobble. a calm market
+  // grinds upward with small moves; a stressed one falls, swings about three
+  // times as hard, and throws the occasional outsized gap. that pairing is
+  // real: volatility and returns are negatively correlated, so the violent
+  // stretches are the falling ones. mean reversion is gone, because pulling
+  // both regimes back to the same middle is what made them look identical.
+  function step() {
+    var last = pts.length ? pts[pts.length - 1].v : 0.5;
+    var drift = stressed ? -0.0014 : 0.0011;
+    var sigma = stressed ? 0.048 : 0.0038;
+    var shock = (Math.random() + Math.random() + Math.random() - 1.5) * sigma;
+    if (stressed && Math.random() < 0.06) shock -= Math.random() * sigma * 3;
+    var next = last + drift + shock;
+    // a soft wall, far outside the drawn range, so a long run cannot escape
+    if (next > 3) next = 3; if (next < -3) next = -3;
+    pts.push({ v: next, s: stressed });
+    pts.shift();
+
+    // the chart is drawn relative to a baseline. anchoring that to pts[0] was
+    // wrong: pts[0] is thrown away on the very next step, so the whole line
+    // jumped by the gap between two neighbouring samples, every step. in a
+    // volatile stretch that is a 20px lurch 24 times a second, and it persists
+    // after switching back to calm because the jagged points are still sitting
+    // at the left edge. average the leading points and ease toward it instead,
+    // so the baseline creeps and only the newest point actually moves.
+    var m = Math.min(14, pts.length), lead = 0;
+    for (var a = 0; a < m; a++) lead += pts[a].v;
+    lead /= m;
+    anchor = anchor === null ? lead : anchor + (lead - anchor) * 0.045;
+  }
+
+  function draw() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, W, H);
+    var accent = (stressed ? css("--down") : css("--accent")) || "#4cc3f0";
+    var rule = css("--rule") || "#212936";
+    var up = css("--up") || "#3ddc97";
+    var down = css("--down") || "#ff6b81";
+    // intensity comes from css so high contrast can turn it all the way up
+    var num = function (n, d) { var v = parseFloat(css(n)); return isNaN(v) ? d : v; };
+    var lineA = num("--tape-line-a", .7), fillA = num("--tape-fill-a", .13);
+    var gridA = num("--tape-grid-a", .5), lineW = num("--tape-w", 1.6);
+
+    ctx.strokeStyle = rule; ctx.globalAlpha = gridA; ctx.lineWidth = 1;
+    // squeeze the whole chart into the room the band actually has on screen.
+    // tight means a shorter run-in and a shorter chart, not a chart that spills
+    // below the fold where nobody sees the line.
+    var pad = Math.max(6, Math.min(30, room * .15));
+    var top = H * cutF + pad;
+    var bh = room > 48
+      ? Math.max(38, Math.min(H - top, room - pad - 8))
+      : Math.max(24, H - top);
+    // plotted as change since the left edge of the window, on a FIXED scale,
+    // which is how an intraday ticker is drawn. it matters here because any
+    // scale that adapts to the data cancels the thing the toggle is meant to
+    // show: autoscaling zoomed out exactly when the swings got big, so a
+    // crashing market was redrawn small and looked as tame as a calm one.
+    // fixed scale means a bigger move draws bigger, full stop.
+    var base = anchor === null ? pts[0].v : anchor, SPAN = 0.62;   // band is base +/- 0.31
+    var yOf = function (v) {
+      var y = top + bh * .5 - ((v - base) / SPAN) * bh * .92;
+      return Math.max(top + 1, Math.min(top + bh - 1, y));
+    };
+
+    for (var g = 1; g < 4; g++) {
+      var gy = Math.round(top + (bh / 4) * g) + .5;
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    var dx = W / (pts.length - 1), i, x, y;
+    ctx.beginPath(); ctx.moveTo(0, H);
+    for (i = 0; i < pts.length; i++) { x = i * dx; y = yOf(pts[i].v); ctx.lineTo(x, y); }
+    ctx.lineTo(W, H); ctx.closePath();
+    var grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, accent); grad.addColorStop(1, "transparent");
+    ctx.globalAlpha = fillA; ctx.fillStyle = grad; ctx.fill(); ctx.globalAlpha = 1;
+
+    // every point remembers which regime drew it, and the line is stroked in
+    // runs of one regime. flip the switch and the old market stays on screen,
+    // in its own colour, next to the new one. that contrast is the point.
+    var calmC = css("--accent") || "#4cc3f0", hotC = css("--down") || "#ff6b81";
+    ctx.globalAlpha = lineA; ctx.lineWidth = lineW;
+    ctx.lineJoin = "round"; ctx.lineCap = "round";
+    i = 0;
+    while (i < pts.length - 1) {
+      var runS = pts[i].s, j = i;
+      while (j < pts.length - 1 && pts[j + 1].s === runS) j++;
+      ctx.beginPath();
+      ctx.moveTo(i * dx, yOf(pts[i].v));
+      for (var q = i + 1; q <= j; q++) ctx.lineTo(q * dx, yOf(pts[q].v));
+      if (j < pts.length - 1) ctx.lineTo((j + 1) * dx, yOf(pts[j + 1].v));
+      ctx.strokeStyle = runS ? hotC : calmC;
+      ctx.stroke();
+      i = j;
+      if (i === j && j < pts.length - 1) i = j + 1;
+    }
+    ctx.globalAlpha = 1;
+
+    var ly = yOf(pts[pts.length - 1].v);
+    ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(W - 2, ly, lineW + 1.3, 0, Math.PI * 2); ctx.fill();
+
+    var bw = 42, bqh = 4, gap = 3, baseY = top + bh * .07;
+    for (var b = 0; b < 7; b++) {
+      var w = bw * (.3 + Math.abs(Math.sin((b + pts[pts.length - 1].v * 6) * 1.1)) * .7);
+      ctx.fillStyle = stressed ? (b < 5 ? down : up) : (b < 2 ? down : up);
+      ctx.globalAlpha = Math.min(1, fillA * 2.4);
+      ctx.fillRect(W - w - 8, baseY + b * (bqh + gap), w, bqh);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function loop(now) {
+    if (!onScreen || reduced()) { raf = 0; lastT = 0; return; }
+    if (!lastT) lastT = now;
+    // cap the catch-up so returning to a backgrounded tab does not fast-forward
+    carry = Math.min(carry + (now - lastT), STEP_MS * 4);
+    lastT = now;
+    var moved = false;
+    while (carry >= STEP_MS) { step(); carry -= STEP_MS; moved = true; }
+    if (moved) draw();
+    raf = requestAnimationFrame(loop);
+  }
+  function startTape() {
+    if (ctx && !raf && onScreen && !reduced()) {
+      lastT = 0; carry = 0;
+      raf = requestAnimationFrame(loop);
+    }
+  }
+  function stopTape() { if (raf) { cancelAnimationFrame(raf); raf = 0; } lastT = 0; if (ctx) draw(); }
+
+  if (ctx) {
+    size();
+    for (var s = 0; s < 120; s++) step();
+    draw();
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (es) {
+        onScreen = es[0].isIntersecting;
+        if (onScreen) { startTape(); } else { stopTape(); }
+      }, { threshold: 0 }).observe(cv);
+    }
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) { stopTape(); } else { startTape(); }
+    });
+    var rt;
+    window.addEventListener("resize", function () {
+      clearTimeout(rt);
+      rt = setTimeout(function () { size(); draw(); }, 140);
+    });
+
+    // the cut line is measured off the text block, and that block grows when the
+    // webfonts land and whenever the text rewraps. measured once at init it goes
+    // stale and the chart paints behind the text, which is the contrast bug this
+    // whole band exists to prevent. re-measure on every change to that block.
+    if (window.ResizeObserver) {
+      var mhEl = document.querySelector(".mh-text");
+      if (mhEl) new ResizeObserver(function () { size(); draw(); }).observe(mhEl);
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { size(); draw(); });
+    }
+  }
+
+  // tapping the tape, or the button, flips the regime
+  var volBtn = document.getElementById("vol");
+  var volLabel = document.getElementById("vol-label");
+
+  function setVol(on) {
+    stressed = on;
+    if (volBtn) volBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    if (volLabel) volLabel.textContent = on
+      ? "Volatile: my backlog after a bad vendor patch"
+      : "Calm: my backlog once the coffee lands";
+    if (ctx && (!raf || reduced())) draw();
+  }
+
+  if (volBtn) volBtn.addEventListener("click", function () { setVol(!stressed); });
+
+  // the canvas sits behind the text, so a click never reaches it. listen on the
+  // hero instead, and only count clicks inside the chart band: below the
+  // contact line, above the next section. the whole hero used to be hot, which
+  // meant clicking beside the name flipped the market for no visible reason.
+  var hero = document.querySelector(".hero");
+
+  function inBand(e) {
+    if (!hero) return false;
+    if (e.target.closest("a, button, input, label, .portrait")) return false;
+    var hb = hero.getBoundingClientRect();
+    var y = e.clientY - hb.top;
+    return y >= hb.height * cutF && y <= hb.height;
+  }
+
+  if (hero) {
+    hero.addEventListener("click", function (e) {
+      if (!inBand(e)) return;
+      setVol(!stressed);
+    });
+    // the cursor only turns into a pointer where the click actually does
+    // something, so the hot area is discoverable instead of invisible
+    hero.addEventListener("mousemove", function (e) {
+      hero.style.cursor = inBand(e) ? "pointer" : "";
+    });
+    hero.addEventListener("mouseleave", function () { hero.style.cursor = ""; });
+  }
+
+  // ---- scroll reveals. progressive enhancement only ----
+  // the name sweeps on load and on demand. same reasoning as the tagline: a
+  // one-shot effect that fires before you look at the page may as well not
+  // exist, so hovering or tapping the name runs it again.
+  (function () {
+    var h1 = document.querySelector(".hero h1");
+    if (!h1) return;
+    var busy = false;
+    function sweep() {
+      if (busy) return;
+      busy = true;
+      h1.classList.remove("shine");
+      void h1.offsetWidth;
+      h1.classList.add("shine");
+      setTimeout(function () { busy = false; }, 2600);
+    }
+    sweep();
+    // deliberately NOT on pointerenter any more. hovering hands control of the
+    // band to the cursor below, and replaying the timed sweep at the same
+    // moment overrode it for two seconds, which looked like the tracking was
+    // simply broken. click still replays the sweep.
+    h1.addEventListener("click", sweep);
+
+    // and the band tracks the scroll, so the light moves across the name as
+    // the page does, the way a reflection moves when you tilt something.
+    // the value is clamped to 0..100 because outside that range a background
+    // this wide slides off the element and leaves part of the name unpainted.
+    // ---- the sheen follows the cursor, with a bit of weight to it ----
+    // position maps so the band sits under the pointer: with a background three
+    // times the element width, the middle of the gradient lands at the left
+    // edge at 75% and the right edge at 25%, so the travel stays well inside
+    // the 0..100 range where the gradient still covers the whole name.
+    var targetP = 50, curP = 50, speed = 0, spin = 0, hovering = false;
+
+    function frame() {
+      spin = 0;
+      var d = targetP - curP;
+      curP += d * 0.16;                       // lag, so the light trails the cursor
+      speed = speed * 0.86 + Math.abs(d) * 0.14;
+      var w = Math.min(22, 6 + speed * 1.6);  // moving fast smears the band wider
+      h1.style.backgroundPosition = curP.toFixed(2) + "% 0";
+      h1.style.setProperty("--shine-w", w.toFixed(1) + "%");
+      if (Math.abs(d) > 0.08 || speed > 0.08) spin = requestAnimationFrame(frame);
+    }
+
+    h1.addEventListener("pointermove", function (e) {
+      if (reduced()) return;
+      hovering = true;
+      var r = h1.getBoundingClientRect();
+      if (!r.width) return;
+      var frac = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      targetP = 75 - 50 * frac;
+      if (!spin) spin = requestAnimationFrame(frame);
+    });
+    h1.addEventListener("pointerleave", function () {
+      hovering = false;
+      h1.style.setProperty("--shine-w", "10%");
+      track();
+    });
+
+    var pending = 0;
+    function track() {
+      pending = 0;
+      if (reduced()) { h1.style.backgroundPosition = ""; return; }
+      if (hovering) return;              // the cursor owns the band while it is here
+      // map the band across exactly the scroll range over which the name is
+      // on screen. measuring against the viewport height instead spends the
+      // whole sweep in the first couple of hundred pixels and then sits pinned
+      // at one end for the rest of the page.
+      var r = h1.getBoundingClientRect();
+      var y = window.scrollY || window.pageYOffset || 0;
+      var leaves = r.top + y + r.height;      // scroll at which it has fully gone
+      var t = leaves > 0 ? y / leaves : 0;
+      t = Math.min(1, Math.max(0, t));
+      curP = 100 - t * 100;
+      h1.style.backgroundPosition = curP.toFixed(1) + "% 0";
+    }
+    window.addEventListener("scroll", function () {
+      // the css sweep owns the position while it is running; let it finish
+      if (busy || pending) return;
+      pending = requestAnimationFrame(track);
+    }, { passive: true });
+    window.addEventListener("resize", function () {
+      if (!pending) pending = requestAnimationFrame(track);
+    });
+  }());
+
+  // the tagline effects play on load, which is easy to miss entirely if the
+  // page finished rendering before you looked at it. hovering or tapping the
+  // line runs them again, so they are repeatable rather than a one-time event.
+  (function () {
+    var sf = document.querySelector(".standfirst");
+    if (!sf) return;
+    var busy = false;
+    function play() {
+      if (busy) return;
+      busy = true;
+      sf.classList.remove("fx-run");
+      void sf.offsetWidth;          // reflow, or the browser reuses the old run
+      sf.classList.add("fx-run");
+      setTimeout(function () { busy = false; }, 2700);
+    }
+    play();
+    sf.addEventListener("pointerenter", play);
+    sf.addEventListener("click", play);
+  }());
+
+  // each section mark plays whenever you arrive at that section, not once per
+  // page load. dropping .go when the mark leaves the screen and adding it back
+  // on return is what restarts the css animations. the two thresholds give it
+  // hysteresis: it starts at half visible and only resets once fully gone, so
+  // a mark parked at the edge of the viewport cannot flicker on and off.
+  (function () {
+    var marks = [].slice.call(document.querySelectorAll(".sec-mark[data-mark]"));
+    if (!marks.length) return;
+    if (!("IntersectionObserver" in window)) {
+      marks.forEach(function (m) { m.classList.add("go"); });
+      return;
+    }
+    var mo = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.intersectionRatio >= .5) e.target.classList.add("go");
+        else if (!e.isIntersecting) e.target.classList.remove("go");
+      });
+    }, { threshold: [0, .01, .5, 1] });
+    marks.forEach(function (m) { mo.observe(m); });
+  }());
+
+  var rv = [].slice.call(document.querySelectorAll(".rv"));
+  function revealAll() { rv.forEach(function (el) { el.classList.add("in"); }); }
+
+  if (!("IntersectionObserver" in window)) { revealAll(); }
+  else {
+    var ro = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); ro.unobserve(e.target); } });
+    }, { threshold: .08, rootMargin: "0px 0px -8% 0px" });
+    rv.forEach(function (el) { ro.observe(el); });
+    // backstop. these sections start hidden and are revealed by the observer,
+    // so anything that stops the observer firing leaves the whole page blank.
+    // if the reveal has not happened within three seconds, show everything.
+    // a scroll effect is worth having; it is not worth the page for it.
+    setTimeout(function () {
+      var stuck = rv.filter(function (el) { return !el.classList.contains("in"); });
+      if (stuck.length === rv.length) revealAll();
+    }, 3000);
+  }
+
+  // ---- stat counters ----
+  var nums = [].slice.call(document.querySelectorAll(".stat b[data-to]"));
+  function fillCounters() {
+    nums.forEach(function (el) {
+      el.textContent = el.getAttribute("data-to") + (el.getAttribute("data-suffix") || "");
+    });
+  }
+  function run(el) {
+    var to = parseFloat(el.getAttribute("data-to")) || 0;
+    var sfx = el.getAttribute("data-suffix") || "";
+    if (reduced()) { el.textContent = to + sfx; return; }
+    var t0 = performance.now(), dur = 1100;
+    el.textContent = "0" + sfx;
+    (function tick(now) {
+      var p = Math.min(1, (now - t0) / dur);
+      el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))) + sfx;
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  }
+  if ("IntersectionObserver" in window) {
+    var no = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { run(e.target); no.unobserve(e.target); } });
+    }, { threshold: .5 });
+    nums.forEach(function (el) { no.observe(el); });
+  }
+
+  // ---- "how it works" disclosures ----
+  // JS collapses them. with JS off the detail is simply visible, see the CSS.
+  [].slice.call(document.querySelectorAll(".more-btn")).forEach(function (btn) {
+    var wrap = document.getElementById(btn.getAttribute("aria-controls"));
+    if (!wrap) return;
+    btn.addEventListener("click", function () {
+      var open = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", open ? "false" : "true");
+      wrap.classList.toggle("open", !open);
+    });
+  });
+
+  // ---- rail ----
+  // Tracks the section you are in and slides the underline to match.
+  // Driven by scroll position, not an observer: observers fire for every
+  // section a smooth scroll passes through, which left the wrong tab lit.
+  var rail = document.querySelector(".rail");
+  var nav = document.querySelector(".rail nav");
+  var ind = document.getElementById("indicator");
+  var links = [].slice.call(document.querySelectorAll(".rail nav a"));
+  var menuBtn = document.getElementById("menu-btn");
+  var menuLabel = document.getElementById("menu-label");
+
+  // the resume link leaves the page, it is not a section
+  links = links.filter(function (a) { return !a.hasAttribute("data-external"); });
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute("href")); });
+
+  var current = -1;
+  var pinned = -1;     // holds the clicked tab while the page glides there
+  var pinTimer = 0;
+
+  function railHeight() {
+    return rail ? rail.offsetHeight : 0;
+  }
+
+  // where a heading should come to rest under the rail
+  function scrollOffset() { return railHeight() + 14; }
+
+  // a heading counts as "current" once it is within this much of that resting
+  // place. the slack matters: a smooth scroll settles a dozen pixels short and
+  // without it the previous section stays lit after you clicked this one.
+  function edgeLine() { return scrollOffset() + 60; }
+
+  function syncRailHeight() {
+    root.style.setProperty("--rail-h", railHeight() + "px");
+  }
+
+  // keep the active tab on screen when the rail scrolls sideways on a phone
+  function scrollTabIntoView(a) {
+    if (!nav || nav.scrollWidth <= nav.clientWidth) return;
+    var left = a.offsetLeft;
+    var right = left + a.offsetWidth;
+    var pad = 14;
+    var target = null;
+    if (left < nav.scrollLeft + pad) {
+      target = left - pad;
+    } else if (right > nav.scrollLeft + nav.clientWidth - pad) {
+      target = right - nav.clientWidth + pad;
+    }
+    if (target === null) return;
+    if (nav.scrollTo) {
+      nav.scrollTo({ left: target, behavior: reduced() ? "auto" : "smooth" });
+    } else {
+      nav.scrollLeft = target;
+    }
+  }
+
+  function place(a) {
+    if (!ind || !a) return;
+    ind.style.width = a.offsetWidth + "px";
+    ind.style.transform = "translateX(" + a.offsetLeft + "px)";
+  }
+
+  function mark(i, fromClick) {
+    if (i === current) return;
+    current = i;
+    links.forEach(function (a, j) {
+      a.setAttribute("aria-current", j === i ? "true" : "false");
+    });
+    place(links[i]);
+    if (menuLabel) menuLabel.textContent = links[i].textContent.trim();
+    if (!fromClick) scrollTabIntoView(links[i]);
+  }
+
+  // which section are we in?
+  function activeIndex() {
+    var edge = edgeLine();
+    var doc = document.documentElement;
+
+    // once the page cannot scroll any further, later sections can never reach
+    // the rail, so "last one that passed" picks the wrong one. fall back to
+    // whichever section sits nearest the rail instead.
+    if (window.innerHeight + window.scrollY >= doc.scrollHeight - 2) {
+      var near = links.length - 1, nearD = Infinity;
+      for (var j = 0; j < secs.length; j++) {
+        if (!secs[j]) continue;
+        var d = Math.abs(secs[j].getBoundingClientRect().top - edge);
+        if (d < nearD) { nearD = d; near = j; }
+      }
+      return near;
+    }
+
+    var best = 0;
+    for (var i = 0; i < secs.length; i++) {
+      if (secs[i] && secs[i].getBoundingClientRect().top - edge <= 1) best = i;
+    }
+    return best;
+  }
+
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      ticking = false;
+      if (pinned > -1) return;
+      mark(activeIndex());
+    });
+  }
+
+  // ---- mobile menu ----
+  function menuOpen() { return menuBtn && menuBtn.getAttribute("aria-expanded") === "true"; }
+
+  function setMenu(open) {
+    if (!menuBtn || !nav) return;
+    menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    nav.classList.toggle("open", open);
+    if (open) {
+      document.addEventListener("keydown", menuKey, true);
+      document.addEventListener("click", menuOutside, true);
+    } else {
+      document.removeEventListener("keydown", menuKey, true);
+      document.removeEventListener("click", menuOutside, true);
+    }
+  }
+
+  function menuKey(e) {
+    if (e.key === "Escape") { e.preventDefault(); setMenu(false); menuBtn.focus(); }
+  }
+
+  function menuOutside(e) {
+    if (!nav.contains(e.target) && !menuBtn.contains(e.target)) setMenu(false);
+  }
+
+  if (menuBtn) {
+    menuBtn.addEventListener("click", function () { setMenu(!menuOpen()); });
+
+    // picking a destination closes the dropdown. the nav is absolutely
+    // positioned, so closing it does not move the page.
+    [].slice.call(document.querySelectorAll(".rail nav a")).forEach(function (a) {
+      a.addEventListener("click", function () { setMenu(false); });
+    });
+
+    // back on a wide screen the rail is horizontal again, drop the open state
+    window.addEventListener("resize", function () {
+      if (window.innerWidth >= 820 && menuOpen()) setMenu(false);
+    });
+  }
+
+  if (links.length) {
+    syncRailHeight();
+    mark(0);
+
+    links.forEach(function (a, i) {
+      a.addEventListener("click", function () {
+        pinned = i;
+        clearTimeout(pinTimer);
+        pinTimer = setTimeout(function () { pinned = -1; }, reduced() ? 80 : 900);
+        mark(i, true);
+        scrollTabIntoView(a);
+      });
+    });
+
+    function unpin() { clearTimeout(pinTimer); pinned = -1; }
+    ["wheel", "touchmove", "keydown"].forEach(function (ev) {
+      window.addEventListener(ev, unpin, { passive: true });
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("hashchange", function () {
+      var i = links.findIndex(function (a) {
+        return a.getAttribute("href") === location.hash;
+      });
+      if (i > -1) { pinned = i; mark(i, true); }
+    });
+
+    var railRt;
+    window.addEventListener("resize", function () {
+      clearTimeout(railRt);
+      railRt = setTimeout(function () {
+        syncRailHeight();
+        place(links[current < 0 ? 0 : current]);
+        mark(activeIndex());
+      }, 120);
+    });
+
+    // fonts land after first paint and change every offset
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        syncRailHeight();
+        place(links[current < 0 ? 0 : current]);
+      });
+    }
+
+    // deep link straight to a section
+    if (location.hash) {
+      var hi = links.findIndex(function (a) {
+        return a.getAttribute("href") === location.hash;
+      });
+      if (hi > -1) { pinned = hi; mark(hi, true); }
+    }
+  }
+
+  // ---- contact form ----
+  var form = document.getElementById("contact-form");
+  var statusEl = document.getElementById("form-status");
+  var copyBtn = document.getElementById("copy-btn");
+
+  var fields = [
+    { id: "f-name", err: "e-name", msg: "Please enter your name." },
+    { id: "f-email", err: "e-email", msg: "Please enter your email address." },
+    { id: "f-msg", err: "e-msg", msg: "Please write a message." }
+  ];
+
+  function setErr(f, text) {
+    var input = document.getElementById(f.id);
+    var err = document.getElementById(f.err);
+    err.textContent = text || "";
+    input.setAttribute("aria-invalid", text ? "true" : "false");
+  }
+
+  function validate() {
+    var bad = null;
+    fields.forEach(function (f) {
+      var input = document.getElementById(f.id);
+      var v = input.value.trim();
+      var text = "";
+      if (!v) text = f.msg;
+      else if (f.id === "f-email" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) {
+        text = "That email address does not look right. Check for a typo.";
+      }
+      setErr(f, text);
+      if (text && !bad) bad = input;
+    });
+    return bad;
+  }
+
+  function composed() {
+    return "From: " + document.getElementById("f-name").value.trim() +
+           " <" + document.getElementById("f-email").value.trim() + ">\n\n" +
+           document.getElementById("f-msg").value.trim();
+  }
+
+  function mailtoHref() {
+    var subj = "Message from " + document.getElementById("f-name").value.trim() + " via your site";
+    return "mailto:" + MY_EMAIL + "?subject=" + encodeURIComponent(subj) +
+           "&body=" + encodeURIComponent(composed());
+  }
+
+  function fallback() {
+    statusEl.innerHTML =
+      "This page is hosted without a form service, so it cannot send mail on its own. " +
+      'Your message is ready: <a href="' + mailtoHref() + '">open it in your email app</a>, ' +
+      "or copy it and send it to " + MY_EMAIL + ".";
+    copyBtn.hidden = false;
+  }
+
+  if (form) {
+    fields.forEach(function (f) {
+      var input = document.getElementById(f.id);
+      input.addEventListener("input", function () {
+        if (input.getAttribute("aria-invalid") === "true") setErr(f, "");
+      });
+      input.addEventListener("blur", function () {
+        var v = input.value.trim();
+        if (!v) return;                         // leaving a field empty is not an error yet
+        if (f.id === "f-email" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) {
+          setErr(f, "That email address does not look right. Check for a typo.");
+        }
+      });
+    });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      copyBtn.hidden = true;
+      var bad = validate();
+      if (bad) {
+        var n = fields.filter(function (f) {
+          return document.getElementById(f.err).textContent.trim();
+        }).length;
+        statusEl.textContent = n === 1
+          ? "One field needs fixing. It is described below the input."
+          : n + " fields need fixing. Each one is described below its input.";
+        bad.focus();
+        return;
+      }
+
+      if (!FORM_ENDPOINT) { fallback(); return; }
+
+      statusEl.textContent = "Sending...";
+      var body = new FormData(form);
+      Object.keys(FORM_FIELDS).forEach(function (k) {
+        body.append(k, FORM_FIELDS[k]);
+      });
+      fetch(FORM_ENDPOINT, { method: "POST", body: body, headers: { Accept: "application/json" } })
+        .then(function (r) {
+          if (!r.ok) throw new Error("bad status " + r.status);
+          form.reset();
+          fields.forEach(function (f) { setErr(f, ""); });
+          statusEl.textContent = "Thanks. Your message was sent and I will reply to the address you gave.";
+        })
+        .catch(function () { fallback(); });
+    });
+
+    copyBtn.addEventListener("click", function () {
+      var text = composed();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          copyBtn.textContent = "Copied";
+          setTimeout(function () { copyBtn.textContent = "Copy message"; }, 1600);
+        }).catch(function () { copyBtn.textContent = "Press Ctrl+C to copy"; });
+      } else {
+        copyBtn.textContent = "Press Ctrl+C to copy";
+      }
+    });
+  }
+
+  // ---- go ----
+  syncInputs();
+  apply();
+})();
+</script>
+</body>
+</html>
