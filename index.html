@@ -1622,7 +1622,7 @@ footer p { margin: 0; max-width: none; }
   //   Formspree  https://formspree.io     ->  "https://formspree.io/f/xxxxxxx"
   //   Web3Forms  https://web3forms.com    ->  "https://api.web3forms.com/submit"
   // Empty falls back to copy + mailto, which always works.
-  var FORM_ENDPOINT = "";
+  var FORM_ENDPOINT = "https://api.web3forms.com/submit";
 
   // Every message gets this subject line. Gmail filters on it, so keep the
   // bracketed tag exactly as it is in both places or the filter stops matching.
@@ -1634,6 +1634,7 @@ footer p { margin: 0; max-width: none; }
   // Sending both means the tag lands whichever service you end up using.
   var FORM_FIELDS = {
     // access_key: "paste-your-web3forms-key-here"
+    access_key: "a062c857-c793-4e1e-be35-6b6cf437f031",
     _subject: SUBJECT_TAG,
     subject: SUBJECT_TAG
   };
