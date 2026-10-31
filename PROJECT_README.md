@@ -140,19 +140,28 @@ Put review count, release year, price and indie status into the model:
 | indie | +2.90 | 0.23 | 12.36 | <0.001 |
 
 R² goes from 0.005 to 0.130. The localisation coefficient drops from 4.86 to
-1.31, so **73% of the apparent effect was the confounder.** What is left is
-real and about a quarter the size of the headline.
+1.31, so 73% of the apparent effect was the confounder. What is left is real
+and about a quarter the size of the headline.
 
 ---
 
 ## Running it
 
+`analysis.R` needs nothing but R. The dataset it reads,
+`data/steam_model.csv`, ships with the repo.
+
+```sh
+Rscript analysis.R          # run from the repo root, not from inside data/
+python3 -m http.server 8000 # then open localhost:8000/games.html
+```
+
+Rebuilding the datasets from the raw CSVs, which are too large for the repo,
+needs the source archive linked above:
+
 ```sh
 pip install pandas statsmodels
-python build_coop.py  data/coop.json      # browser dataset
-python build_sql.py  data/analysis.json   # steam.db + query output
-Rscript analysis.R                        # regressions
-python -m http.server 8000                # then open localhost:8000/games.html
+python build_coop.py data/coop.json     # browser dataset
+python build_sql.py  data/analysis.json # steam.db, query output, steam_model.csv
 ```
 
 The page fetches its data, so it needs a server. Opening `games.html` from a

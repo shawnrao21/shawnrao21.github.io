@@ -5,26 +5,20 @@
 # points is a lot. This checks whether that gap survives controlling for the
 # obvious confounder: publishers localise games that have already sold well.
 #
-# Run from the repo root, with steam.db built by build_sql.py:
+# Run from the repo root:
 #   Rscript analysis.R
+#
+# Reads data/steam_model.csv, which ships with the repo: the 19,611 games with
+# at least 150 reviews and a non-empty language list, straight out of the SQL
+# join. No database build needed. build_sql.py regenerates it from the raw CSVs.
 
-library(DBI)
-library(RSQLite)
-
-con <- dbConnect(SQLite(), "data/steam.db")
-
-raw <- dbGetQuery(con, "
-  SELECT g.app_id, g.name, s.price/100.0 AS usd,
-         CAST(substr(g.released,1,4) AS INT) AS yr,
-         r.positive, r.total, s.languages, s.genres
-  FROM games g
-  JOIN reviews r ON r.app_id = g.app_id
-  JOIN spy     s ON s.app_id = g.app_id
-  WHERE g.type = 'game' AND r.total >= 150
-    AND s.languages IS NOT NULL AND s.languages <> ''
-")
-
-dbDisconnect(con)
+f <- "data/steam_model.csv"
+if (!file.exists(f)) {
+  stop("cannot find ", f, ". Run Rscript from the repo root, the folder that ",
+       "contains data/, not from inside data/ itself.")
+}
+raw <- read.csv(f, stringsAsFactors = FALSE)
+cat("loaded", nrow(raw), "games from", f, "\n\n")
 
 # Wilson lower bound. A raw positive percentage lets 5 reviews out of 5 beat
 # 48,000 out of 50,000, which is not what anyone means by "better reviewed".
@@ -34,7 +28,9 @@ wilson <- function(pos, n, z = 1.96) {
 }
 
 d <- within(raw, {
-  score        <- wilson(positive, total)
+  # in percentage points, not a 0-1 proportion, so every coefficient below
+  # reads directly as "points of positive review rate".
+  score        <- wilson(positive, total) * 100
   locales      <- lengths(regmatches(languages, gregexpr(",", languages))) + 1
   many_locales <- as.integer(locales > 15)
   log_reviews  <- log(total)
@@ -43,14 +39,21 @@ d <- within(raw, {
 })
 
 d <- subset(d, yr >= 2006 & yr <= 2024 & is.finite(score) & is.finite(log_reviews))
+
+# Drop incomplete cases here, before anything is fitted. lm() drops them
+# silently per model, so model 2 would run on 1,447 fewer games than model 1 and
+# the shrinkage below would be comparing coefficients from two different
+# samples. Nested models only mean something on identical rows.
+need <- c("score", "many_locales", "log_reviews", "yr", "log_price", "indie")
+d <- d[complete.cases(d[, need]), ]
 cat("n =", nrow(d), "\n\n")
 
 # ---- 1. the gap as the SQL reported it ------------------------------------
 many <- d$score[d$many_locales == 1]
 few  <- d$score[d$many_locales == 0]
 
-cat("many locales:", round(mean(many) * 100, 2), "%  n =", length(many), "\n")
-cat("few locales :", round(mean(few) * 100, 2), "%  n =", length(few), "\n")
+cat("many locales:", round(mean(many), 2), "%  n =", length(many), "\n")
+cat("few locales :", round(mean(few), 2), "%  n =", length(few), "\n")
 print(t.test(many, few))
 
 # Cohen's d, because a p value this small only says the gap is not zero.
@@ -81,7 +84,7 @@ cat("cor(locales, log reviews)   :",
 # ---- 5. and the price finding, same treatment -----------------------------
 d$band <- cut(d$usd, c(-1, 0, 10, 20, 40, 1000),
               labels = c("Free", "Under $10", "$10-20", "$20-40", "$40+"))
-print(aggregate(score ~ band, d, function(x) round(mean(x) * 100, 1)))
+print(aggregate(score ~ band, d, function(x) round(mean(x), 1)))
 mb <- lm(score ~ band, data = d)
 cat("\nprice bands explain R^2 =", round(summary(mb)$r.squared, 4),
     "of the variance in score\n")

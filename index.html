@@ -1564,16 +1564,6 @@ footer p { margin: 0; max-width: none; }
           <dt>Availability</dt>
           <dd>Summer 2027 internships<span class="sub">Graduating December 2027.</span></dd>
         </div>
-        <!-- Add profile links here when you are ready, e.g.
-        <div>
-          <dt>LinkedIn</dt>
-          <dd><a href="https://www.linkedin.com/in/YOUR-HANDLE">linkedin.com/in/YOUR-HANDLE</a></dd>
-        </div>
-        <div>
-          <dt>GitHub</dt>
-          <dd><a href="https://github.com/YOUR-HANDLE">github.com/YOUR-HANDLE</a></dd>
-        </div>
-        -->
       </dl>
 
       <h3>Send a message</h3>
@@ -1635,7 +1625,6 @@ footer p { margin: 0; max-width: none; }
   // _subject is Formspree's key for the subject line, subject is Web3Forms'.
   // Sending both means the tag lands whichever service you end up using.
   var FORM_FIELDS = {
-    // access_key: "paste-your-web3forms-key-here"
     access_key: "a062c857-c793-4e1e-be35-6b6cf437f031",
     _subject: SUBJECT_TAG,
     subject: SUBJECT_TAG
@@ -2473,7 +2462,10 @@ footer p { margin: 0; max-width: none; }
   }
 
   function mailtoHref() {
-    var subj = "Message from " + document.getElementById("f-name").value.trim() + " via your site";
+    // Same SUBJECT_TAG as the form-service path, so one Gmail filter catches
+    // both. The sender's name goes in brackets after the tag, not instead of it.
+    var who = document.getElementById("f-name").value.trim();
+    var subj = SUBJECT_TAG + (who ? " (" + who + ")" : "");
     return "mailto:" + MY_EMAIL + "?subject=" + encodeURIComponent(subj) +
            "&body=" + encodeURIComponent(composed());
   }
