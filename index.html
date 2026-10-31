@@ -1294,7 +1294,7 @@ footer p { margin: 0; max-width: none; }
           <div class="more-wrap" id="d5">
             <div class="more-body">
               <ul class="notes">
-                <li>A Python pipeline I wrote reads six CSVs, about 2.9 million rows, and emits one 260KB file. Everything after that runs in your browser.</li>
+                <li>A Python pipeline I wrote reads six CSVs, about three million rows, and emits one file the browser fetches in a single request, 199KB compressed. Everything after that runs in your browser.</li>
                 <li>Cleaning it took longer than building it. pandas dropped 54% of one file to a quoting bug and never raised an error. Playtime came back zero across all 140,077 rows, so I cut that feature. And the genre table stores Counter-Strike in Polish and Dota in Russian, which meant my English filter was quietly deleting the biggest games on Steam.</li>
                 <li>For recommendations I use cosine similarity over tag vectors, weighted by how rare each tag is. Skip the weighting and everything matches on Action and Indie.</li>
                 <li>Terraria returns Starbound. Hades returns Hades II and Binding of Isaac.</li>

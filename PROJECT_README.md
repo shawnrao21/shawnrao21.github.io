@@ -30,7 +30,7 @@ argument between four people with different libraries and a price ceiling.
 
 | Layer | Tool | Why |
 | --- | --- | --- |
-| Pipeline | Python, pandas | six CSVs to one 260KB JSON |
+| Pipeline | Python, pandas | six CSVs, 3.04M rows, to one 199KB gzipped JSON |
 | Queries | SQLite | the aggregate questions are plainly SQL |
 | Statistics | R (`lm`) | testing whether the SQL findings survive controls |
 | Front end | vanilla JS | no framework needed for one page |
@@ -82,8 +82,7 @@ Spot checks:
 ## The data, and what was wrong with it
 
 Source: [steam-insights](https://github.com/NewbieIndieGameDev/steam-insights),
-a public snapshot of the Steam store and SteamSpy. Six CSVs, about 2.9 million
-rows.
+a public snapshot of the Steam store and SteamSpy. Six CSVs, 3,040,866 rows.
 
 Cleaning took longer than building. Four problems, each of which produced a
 plausible-looking wrong answer rather than an error:
