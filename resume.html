@@ -150,11 +150,6 @@ dl.kv dd { margin:0; font-size:.93rem; }
   </header>
 
   <section>
-    <h2>Summary</h2>
-    <p>Data Science undergraduate in the University of Michigan College of Engineering, graduating December 2027. Works in C++ on performance-sensitive systems, in Python and R on data and statistics, and in JavaScript on responsive, accessible web interfaces. Comfortable in Git-based collaborative development workflows. Seeking a Summer 2027 internship in software engineering or data.</p>
-  </section>
-
-  <section>
     <h2>Education</h2>
     <article>
       <div class="row">
@@ -192,15 +187,16 @@ dl.kv dd { margin:0; font-size:.93rem; }
   <section>
     <h2>Technical Skills</h2>
     <dl class="kv">
-      <div><dt>Languages</dt><dd>C++, Python, R, SQL, JavaScript (ES6+), HTML5, CSS3</dd></div>
+      <div><dt>Languages</dt><dd>C++, Python, R, SQL, MATLAB, JavaScript (ES6+), HTML5, CSS3</dd></div>
       <div><dt>Algorithms &amp; data structures</dt><dd>Heaps and priority queues, union-find with path compression, graph algorithms (Prim, Dijkstra, MST), dynamic programming, branch and bound, C++ STL</dd></div>
       <div><dt>Statistics</dt><dd>Probability distributions, joint and conditional distributions, transformations of random variables, Central Limit Theorem, point estimation, OLS regression and confounding, t-tests</dd></div>
-      <div><dt>Data tools</dt><dd>R, tidyverse, RStudio, Quarto, Pandas, NumPy, JMP, SQL (window functions, recursive CTEs)</dd></div>
+      <div><dt>Data tools</dt><dd>tidyverse, RStudio, Quarto, Pandas, NumPy, JMP, SQL (window functions, recursive CTEs),
+        Microsoft Excel, Word, PowerPoint</dd></div>
       <div><dt>Testing &amp; verification</dt><dd>Randomized differential testing, mutation testing, Valgrind memory checking, strict-flag builds</dd></div>
       <div><dt>Front end</dt><dd>DOM manipulation, CSS Grid, Flexbox, Media Queries, responsive design, WCAG 2.2 accessibility</dd></div>
       <div><dt>Frameworks &amp; APIs</dt><dd>React, Node.js (self-directed study), LangChain, OpenAI API</dd></div>
       <div><dt>Version control</dt><dd>Git (interactive rebase, hooks, reflog recovery, conflict resolution), GitHub, GitLab, collaborative development workflows</dd></div>
-      <div><dt>Systems &amp; cloud</dt><dd>Linux, Unix, Bash, Zsh, shell scripting, process control (fork/exec/wait), Docker, Amazon Web Services (AWS) EC2 and S3</dd></div>
+      <div><dt>Systems &amp; cloud</dt><dd>Linux, Unix, Bash, Zsh, shell scripting, process control (fork/exec/wait), SSH key authentication, WSL, Docker, Amazon Web Services (AWS) EC2 and S3</dd></div>
       <div><dt>Text processing</dt><dd>grep, sed, POSIX regular expressions</dd></div>
     </dl>
   </section>
@@ -215,6 +211,17 @@ dl.kv dd { margin:0; font-size:.93rem; }
         <li>Built a discrete-event engine that reads a stream of timestamped buy and sell orders and matches them against a price-time priority book, using paired binary heaps so each insert and match runs in O(log n).</li>
         <li>Produced running median price, per-trader transfer totals, and arbitrage reports in a single pass over the order stream, with no second read of the input.</li>
         <li>Analyzed the performance bottleneck and cut runtime on the largest test inputs by replacing linear scans with a custom priority queue, choosing the data structure for scalability rather than for the smallest change.</li>
+      </ul>
+    </article>
+
+    <article>
+      <h3>Shell Tooling and Git Automation</h3>
+      <p class="stackline">C, Bash, Zsh, Git, sed</p>
+      <ul class="b">
+        <li>Constructed a Unix shell in C with fork, execvp and waitpid, handling cd and exit in
+          parent scope since a child process cannot alter its parent's working directory</li>
+        <li>Automated credential leak prevention via a pre-commit Git hook rejecting SSH private
+          keys and hard-coded API credentials across all commits</li>
       </ul>
     </article>
 
@@ -274,7 +281,7 @@ dl.kv dd { margin:0; font-size:.93rem; }
       <ul class="b">
         <li>Configured and deployed employee workstations to company servers; tracked and
             reconciled IT hardware inventory.</li>
-        <li>Supported office and plant staff on Windows desktops and on the production floor.</li>
+        <li>Resolved Windows and shop-floor issues for office and plant staff, prioritizing line uptime</li>
       </ul>
     </article>
   </section>

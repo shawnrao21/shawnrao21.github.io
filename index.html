@@ -1474,16 +1474,16 @@ footer p { margin: 0; max-width: none; }
     </div>
     <div class="sec-body rv">
       <dl class="skills">
-        <div><dt>Languages</dt><dd><span>JavaScript (ES6+)</span><span>C++</span><span>Python</span><span>R</span><span>SQL</span><span>HTML5</span><span>CSS3</span></dd></div>
+        <div><dt>Languages</dt><dd><span>JavaScript (ES6+)</span><span>C++</span><span>Python</span><span>R</span><span>SQL</span><span>MATLAB</span><span>HTML5</span><span>CSS3</span></dd></div>
         <div><dt>Front end</dt><dd><span>DOM manipulation</span><span>CSS Grid</span><span>Flexbox</span><span>media queries</span><span>responsive layout</span><span>semantic markup</span><span>Canvas</span></dd></div>
         <div><dt>Accessibility</dt><dd><span>WCAG 2.2</span><span>ARIA</span><span>keyboard navigation</span><span>screen reader testing</span><span>colour contrast</span></dd></div>
         <div><dt>Learning now</dt><dd><span>React</span><span>Node.js</span></dd></div>
         <div><dt>Version control</dt><dd><span>Git</span><span>interactive rebase</span><span>git hooks</span><span>reflog recovery</span><span>GitHub</span><span>GitLab</span></dd></div>
-        <div><dt>Systems</dt><dd><span>Linux</span><span>Unix</span><span>Bash</span><span>Zsh</span><span>shell scripting</span><span>process control</span><span>Docker</span><span>AWS</span></dd></div>
+        <div><dt>Systems</dt><dd><span>Linux</span><span>Unix</span><span>Bash</span><span>Zsh</span><span>shell scripting</span><span>process control</span><span>SSH</span><span>WSL</span><span>Docker</span><span>AWS EC2/S3</span></dd></div>
         <div><dt>Text processing</dt><dd><span>grep</span><span>sed</span><span>POSIX regex</span></dd></div>
         <div><dt>Algorithms</dt><dd><span>heaps and priority queues</span><span>union-find</span><span>Dijkstra</span><span>dynamic programming</span><span>branch and bound</span><span>C++ STL</span></dd></div>
         <div><dt>Statistics</dt><dd><span>probability distributions</span><span>Central Limit Theorem</span><span>point estimation</span><span>OLS regression</span><span>confounding</span><span>t-tests</span></dd></div>
-        <div><dt>Data</dt><dd><span>Pandas</span><span>NumPy</span><span>tidyverse</span><span>Quarto</span><span>JMP</span><span>LangChain</span><span>OpenAI API</span></dd></div>
+        <div><dt>Data</dt><dd><span>Pandas</span><span>NumPy</span><span>tidyverse</span><span>Quarto</span><span>JMP</span><span>LangChain</span><span>OpenAI API</span><span>Excel</span><span>Word</span><span>PowerPoint</span></dd></div>
         <div><dt>Testing</dt><dd><span>differential testing</span><span>mutation testing</span><span>Valgrind</span><span>strict-flag builds</span></dd></div>
       </dl>
     </div>
@@ -1519,7 +1519,7 @@ footer p { margin: 0; max-width: none; }
             <div class="more-body">
               <ul class="notes">
                 <li>Debugging with someone waiting over your shoulder is a different skill from debugging alone. You rule things out in order, and you say what you are doing while you do it.</li>
-                <li>Most of that 25% came from tracking which failures kept recurring instead of treating each one as new.</li>
+                <li>Most of that 25% came from tracking which failures kept recurring instead of treating each one as new. We measured it by hardware ticket volume and by how many issues got resolved straight out of the updated runbooks.</li>
                 <li>I worked with faculty to bring three new technologies into the shared lab workflow. Setup time dropped about 40%.</li>
                 <li>Not a software job. It is where I learned to write the fix down.</li>
               </ul>
@@ -1617,7 +1617,7 @@ footer p { margin: 0; max-width: none; }
   //   Formspree  https://formspree.io     ->  "https://formspree.io/f/xxxxxxx"
   //   Web3Forms  https://web3forms.com    ->  "https://api.web3forms.com/submit"
   // Empty falls back to copy + mailto, which always works.
-  var FORM_ENDPOINT = "https://api.web3forms.com/submit";
+  var FORM_ENDPOINT = "";
 
   // Every message gets this subject line, and the Gmail filter matches the
   // SiteMessage token in it. The token is one alphanumeric word on purpose:
@@ -1630,7 +1630,7 @@ footer p { margin: 0; max-width: none; }
   // _subject is Formspree's key for the subject line, subject is Web3Forms'.
   // Sending both means the tag lands whichever service you end up using.
   var FORM_FIELDS = {
-    access_key: "a062c857-c793-4e1e-be35-6b6cf437f031",
+    // access_key: "paste-your-web3forms-key-here"
     _subject: SUBJECT_TAG,
     subject: SUBJECT_TAG
   };
